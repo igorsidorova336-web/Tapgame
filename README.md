@@ -165,6 +165,88 @@
   let tapPower = 1;
   let level = 1;
   const MAX_ENERGY = 100;
+ // ---------- СКИНЫ ----------
+const SKINS = [
+  { id: 'gold', emoji: '🪙', name: 'Золотая', price: 50 },
+  { id: 'diamond', emoji: '💎', name: 'Алмазная', price: 150 },
+  { id: 'plasma', emoji: '🌀', name: 'Плазменная', price: 500 },
+  { id: 'rainbow', emoji: '🌈', name: 'Радужная', price: 1500 },
+  { id: 'neon', emoji: '💜', name: 'Неоновая', price: 50000 },
+  { id: 'crystal', emoji: '❄️', name: 'Хрустальная', price: 100000 },
+  { id: 'legend_gold', emoji: '👑', name: 'Королевская', price: 1000000 },
+  { id: 'legend_dark', emoji: '🌑', name: 'Тёмная звезда', price: 2500000 },
+  { id: 'legend_cosmic', emoji: '🌌', name: 'Космическая', price: 5000000 },
+  { id: 'legend_god', emoji: '⚡', name: 'Божественная', price: 10000000 },
+];
+
+let ownedSkins = JSON.parse(localStorage.getItem('ownedSkins')) || ['gold'];
+let activeSkin = localStorage.getItem('activeSkin') || 'gold';
+
+function formatNumber(num) {
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+}
+
+function updateCoinSkin() {
+  const skin = SKINS.find(s => s.id === activeSkin);
+  if (skin) coin.textContent = skin.emoji;
+}
+
+function renderSkinShop() {
+  const shop = document.getElementById('skinShop');
+  if (!shop) return;
+  shop.innerHTML = '';
+  
+  SKINS.forEach(skin => {
+    const isOwned = ownedSkins.includes(skin.id);
+    const isActive = activeSkin === skin.id;
+    const isLegendary = skin.price >= 1000000;
+    const isVip = skin.price >= 50000 && skin.price < 1000000;
+    
+    const div = document.createElement('div');
+    div.className = `skin-item ${isOwned ? 'owned' : 'locked'} ${isActive ? 'active' : ''} ${isVip ? 'vip' : ''} ${isLegendary ? 'legendary' : ''}`;
+    
+    let badge = '';
+    if (isLegendary) badge = '<div class="skin-badge">🔥 LEGEND</div>';
+    else if (isVip) badge = '<div class="skin-badge" style="background:#ff6b6b;">⭐ VIP</div>';
+    
+    const priceDisplay = isOwned ? (isActive ? '✅' : '📌') : (skin.price >= 1000000 ? '💎 ' + formatNumber(skin.price) : skin.price + '🪙');
+    
+    div.innerHTML = `
+      <div style="font-size: 32px;">${skin.emoji}</div>
+      <div class="skin-price">${priceDisplay}</div>
+      ${badge}
+    `;
+    
+    div.addEventListener('click', () => {
+      if (isOwned) {
+        activeSkin = skin.id;
+        localStorage.setItem('activeSkin', activeSkin);
+        updateCoinSkin();
+        renderSkinShop();
+      } else {
+        if (score < skin.price) {
+          alert(`❌ Не хватает! Нужно ${formatNumber(skin.price)} монет.`);
+          return;
+        }
+        if (confirm(`Купить "${skin.name}" за ${formatNumber(skin.price)} монет?`)) {
+          score -= skin.price;
+          ownedSkins.push(skin.id);
+          localStorage.setItem('ownedSkins', JSON.stringify(ownedSkins));
+          activeSkin = skin.id;
+          localStorage.setItem('activeSkin', activeSkin);
+          updateCoinSkin();
+          updateUI();
+          renderSkinShop();
+          if (isLegendary) {
+            alert(`🎉✨ ПОЗДРАВЛЯЮ! Легендарный скин "${skin.name}" твой!`);
+          }
+        }
+      }
+    });
+    
+    shop.appendChild(div);
+  });
+}
 
   const scoreEl = document.getElementById('score');
   const energyEl = document.getElementById('energy');
