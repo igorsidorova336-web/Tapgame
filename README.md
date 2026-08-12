@@ -272,6 +272,10 @@ function renderSkinShop() {
 
   // Сохраняем прогресс
   function saveGame() {
+   function saveGame() {
+  const data = { score, energy, tapPower, level, ownedSkins, activeSkin };
+  localStorage.setItem('tapGameData', JSON.stringify(data));
+}
     const data = { score, energy, tapPower, level };
     localStorage.setItem('tapGameData', JSON.stringify(data));
   }
