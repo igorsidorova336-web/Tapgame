@@ -192,6 +192,9 @@
   // ==================== ПЕРЕМЕННЫЕ ====================
   // ==================== 3D МОНЕТКА ====================
 function init3DCoin() {
+  // Сохраняем ссылку на монетку для смены цвета
+window.coinMesh = coinMesh;
+window.coinMaterial = material;
   const container = document.getElementById('coin3d');
   if (!container) return;
   
@@ -342,24 +345,28 @@ setTimeout(init3DCoin, 100);
   }
 
   // ==================== СКИНЫ ====================
-  const SKINS = [
-    { id: 'gold', emoji: '🪙', name: 'Золотая', price: 50 },
-    { id: 'diamond', emoji: '💎', name: 'Алмазная', price: 150 },
-    { id: 'plasma', emoji: '🌀', name: 'Плазменная', price: 500 },
-    { id: 'rainbow', emoji: '🌈', name: 'Радужная', price: 1500 },
-    { id: 'neon', emoji: '💜', name: 'Неоновая', price: 50000 },
-    { id: 'crystal', emoji: '❄️', name: 'Хрустальная', price: 100000 },
-    { id: 'legend_gold', emoji: '👑', name: 'Королевская', price: 1000000 },
-    { id: 'legend_dark', emoji: '🌑', name: 'Тёмная звезда', price: 2500000 },
-    { id: 'legend_cosmic', emoji: '🌌', name: 'Космическая', price: 5000000 },
-    { id: 'legend_god', emoji: '⚡', name: 'Божественная', price: 10000000 },
-  ];
+const SKINS = [
+  { id: 'gold', emoji: '🪙', name: 'Золотая', price: 50, color: 0xf5c842 },
+  { id: 'diamond', emoji: '💎', name: 'Алмазная', price: 150, color: 0xb9f2ff },
+  { id: 'plasma', emoji: '🌀', name: 'Плазменная', price: 500, color: 0x00ffcc },
+  { id: 'rainbow', emoji: '🌈', name: 'Радужная', price: 1500, color: 0xff6bff },
+  { id: 'neon', emoji: '💜', name: 'Неоновая', price: 50000, color: 0xcc00ff },
+  { id: 'crystal', emoji: '❄️', name: 'Хрустальная', price: 100000, color: 0x88ddff },
+  { id: 'legend_gold', emoji: '👑', name: 'Королевская', price: 1000000, color: 0xffd700 },
+  { id: 'legend_dark', emoji: '🌑', name: 'Тёмная звезда', price: 2500000, color: 0x2a0a2a },
+  { id: 'legend_cosmic', emoji: '🌌', name: 'Космическая', price: 5000000, color: 0x4a00ff },
+  { id: 'legend_god', emoji: '⚡', name: 'Божественная', price: 10000000, color: 0xffaa00 },
+];
 
   function updateCoinSkin() {
-    const skin = SKINS.find(s => s.id === activeSkin);
-    if (skin) coin.textContent = skin.emoji;
+  const skin = SKINS.find(s => s.id === activeSkin);
+  if (skin) {
+    // Меняем эмодзи (для совместимости)
+    coin.textContent = skin.emoji;
+    // Меняем цвет 3D-монетки
+    update3DCoinColor(skin.color);
   }
-
+}
   function renderSkinShop() {
     const shop = document.getElementById('skinShop');
     if (!shop) return;
@@ -725,6 +732,15 @@ setTimeout(init3DCoin, 100);
 
   // ==================== СТАРТ ====================
   loadGame();
+  // ==================== СМЕНА ЦВЕТА 3D-МОНЕТКИ ====================
+function update3DCoinColor(colorHex) {
+  if (window.coinMaterial) {
+    window.coinMaterial.color.setHex(colorHex);
+    // Добавляем эффект свечения
+    window.coinMaterial.emissive.setHex(colorHex);
+    window.coinMaterial.emissiveIntensity = 0.15;
+  }
+}
 </script>
 </body>
 </html>
