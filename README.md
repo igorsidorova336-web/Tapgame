@@ -112,6 +112,12 @@
   </div>
   
   <button id="upgradeBtn">🔧 Улучшить тап (стоит 50)</button>
+  <!-- МАГАЗИН СКИНОВ -->
+<div style="margin: 15px 0; background: #12121f; border-radius: 16px; padding: 12px;">
+  <div style="font-size: 14px; font-weight: bold; margin-bottom: 10px;">🎨 Скины</div>
+  <div id="skinShop" style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;"></div>
+  <div style="font-size: 11px; opacity: 0.4; margin-top: 6px;">Нажми → купить или применить</div>
+</div>
   <div class="info">⬆️ Автосохранение каждые 5 секунд</div>
 </div>
 
