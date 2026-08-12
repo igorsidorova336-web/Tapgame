@@ -99,6 +99,14 @@
   <div class="energy">⚡ Энергия: <span id="energy">100</span>%</div>
   
   <div class="stats">
+    <div style="margin: 10px 0;">
+  <button id="bonusBtn" style="background: linear-gradient(135deg, #f7971e, #ffd200); padding: 12px 20px; border-radius: 50px; border: none; font-weight: 700; font-size: 15px; width: 100%; color: #0f0f1a;">
+    🎁 Забрать бонус
+  </button>
+  <div style="font-size: 13px; opacity: 0.6; margin-top: 5px;">
+    Следующий бонус через: <span id="bonusTimer">--:--:--</span>
+  </div>
+</div>
     <div>👆 Сила: <span id="tapPower">1</span></div>
     <div>📈 Уровень: <span id="level">1</span></div>
   </div>
