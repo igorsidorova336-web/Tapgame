@@ -363,6 +363,10 @@ function renderSkinShop() {
 
   // ---- ЗАГРУЗКА ПРИ СТАРТЕ ----
   loadGame();
+ updateCoinSkin();
+renderSkinShop();
+ if (data.ownedSkins) ownedSkins = data.ownedSkins;
+if (data.activeSkin) activeSkin = data.activeSkin;
 
   // Сохраняем при закрытии страницы
   window.addEventListener('beforeunload', saveGame);
