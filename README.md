@@ -76,11 +76,39 @@
       color: #0f0f1a;
     }
     button:active { transform: scale(0.95); }
+    button:disabled { opacity: 0.4; transform: none; }
     .info {
       font-size: 12px;
       opacity: 0.4;
       margin-top: 20px;
     }
+
+    /* Стили для скинов */
+    .skin-item {
+      width: 56px;
+      height: 66px;
+      background: #1a1a2e;
+      border-radius: 12px;
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: 0.15s;
+      font-size: 26px;
+      padding: 4px;
+      margin: 3px;
+    }
+    .skin-item:active { transform: scale(0.9); }
+    .skin-item.owned { border-color: #4caf50; }
+    .skin-item.active { border-color: #f5c842; box-shadow: 0 0 15px rgba(245,200,66,0.3); }
+    .skin-item.locked { opacity: 0.4; }
+    .skin-price { font-size: 9px; color: #aaa; margin-top: 2px; }
+    .skin-badge { font-size: 7px; background: #ffd700; color: #000; padding: 1px 6px; border-radius: 10px; font-weight: bold; margin-top: 2px; }
+    .skin-item.vip { border-color: #ff6b6b; background: #1a0a0a; }
+    .skin-item.legendary { border-color: #ffd700; background: #1a1500; box-shadow: 0 0 20px rgba(255,215,0,0.15); }
+    .skin-item.legendary .skin-price { color: #ffd700; font-weight: bold; }
 
     /* Таблица лидеров */
     .leaderboard-entry {
@@ -103,6 +131,8 @@
       outline: none;
     }
     input::placeholder { color: #666; }
+
+    #bonusBtn:disabled { opacity: 0.4; transform: none; }
   </style>
 </head>
 <body>
@@ -116,6 +146,23 @@
     <div>📈 Уровень: <span id="level">1</span></div>
   </div>
   <button id="upgradeBtn">🔧 Улучшить тап (стоит 50)</button>
+
+  <!-- ЕЖЕДНЕВНЫЙ БОНУС -->
+  <div style="margin:15px 0;background:#12121f;border-radius:16px;padding:12px;">
+    <div style="font-size:14px;font-weight:bold;margin-bottom:8px;">🎁 Ежедневный бонус</div>
+    <button id="bonusBtn" style="background:linear-gradient(135deg, #f7971e, #ffd200); padding:12px 16px; border-radius:50px; border:none; font-weight:700; font-size:15px; width:100%; color:#0f0f1a; margin-top:0;">
+      🎁 Забрать бонус
+    </button>
+    <div style="font-size:12px; opacity:0.5; margin-top:5px;">
+      Следующий бонус через: <span id="bonusTimer">--:--:--</span>
+    </div>
+  </div>
+
+  <!-- МАГАЗИН СКИНОВ -->
+  <div style="margin:15px 0;background:#12121f;border-radius:16px;padding:12px;">
+    <div style="font-size:14px;font-weight:bold;margin-bottom:10px;">🎨 Скины</div>
+    <div id="skinShop" style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;"></div>
+  </div>
 
   <!-- ТАБЛИЦА ЛИДЕРОВ -->
   <div style="margin:15px 0;background:#12121f;border-radius:16px;padding:12px;">
@@ -132,97 +179,6 @@
 
 <script>
   // ==================== ПЕРЕМЕННЫЕ ====================
-  // ==================== ЕЖЕДНЕВНЫЙ БОНУС ====================
-let lastBonusDate = localStorage.getItem('lastBonusDate') || null;
-let bonusStreak = parseInt(localStorage.getItem('bonusStreak')) || 0;
-
-const bonusBtn = document.getElementById('bonusBtn');
-const bonusTimer = document.getElementById('bonusTimer');
-
-function getBonusAmount() {
-  return 50 + bonusStreak * 30; // 50, 80, 110, 140...
-}
-
-function canClaimBonus() {
-  if (!lastBonusDate) return true;
-  var last = new Date(parseInt(lastBonusDate));
-  var now = new Date();
-  var diff = now - last;
-  var hoursPassed = diff / (1000 * 60 * 60);
-  return hoursPassed >= 24;
-}
-
-function updateBonusTimer() {
-  if (!lastBonusDate) {
-    bonusTimer.textContent = 'Готово!';
-    return;
-  }
-  var last = new Date(parseInt(lastBonusDate));
-  var next = new Date(last.getTime() + 24 * 60 * 60 * 1000);
-  var now = new Date();
-  var diff = next - now;
-
-  if (diff <= 0) {
-    bonusTimer.textContent = '🎯 Готово!';
-    return;
-  }
-
-  var hours = Math.floor(diff / (1000 * 60 * 60));
-  var minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-  var seconds = Math.floor((diff % (1000 * 60)) / 1000);
-  bonusTimer.textContent = 
-    String(hours).padStart(2, '0') + ':' + 
-    String(minutes).padStart(2, '0') + ':' + 
-    String(seconds).padStart(2, '0');
-}
-
-function updateBonusUI() {
-  if (canClaimBonus()) {
-    bonusBtn.textContent = '🎁 Забрать бонус';
-    bonusBtn.style.background = 'linear-gradient(135deg, #f7971e, #ffd200)';
-    bonusBtn.disabled = false;
-  } else {
-    bonusBtn.textContent = '⏳ Бонус недоступен';
-    bonusBtn.style.background = '#2a2a40';
-    bonusBtn.style.color = '#666';
-    bonusBtn.disabled = true;
-  }
-  updateBonusTimer();
-}
-
-function claimBonus() {
-  if (!canClaimBonus()) {
-    alert('⏳ Бонус ещё не готов! Подожди 24 часа.');
-    return;
-  }
-
-  var bonus = getBonusAmount();
-  var streak = bonusStreak + 1;
-
-  score += bonus;
-  bonusStreak = streak;
-  lastBonusDate = Date.now().toString();
-
-  localStorage.setItem('lastBonusDate', lastBonusDate);
-  localStorage.setItem('bonusStreak', bonusStreak.toString());
-
-  alert('🎉 День ' + streak + ' подряд! Ты получил ' + formatNumber(bonus) + ' монет!');
-
-  bonusBtn.style.transform = 'scale(0.9)';
-  setTimeout(function() { bonusBtn.style.transform = 'scale(1)'; }, 150);
-
-  updateUI();
-  updateBonusUI();
-  saveGame();
-}
-
-// Кнопка бонуса
-if (bonusBtn) {
-  bonusBtn.addEventListener('click', claimBonus);
-}
-
-// Обновление таймера каждую секунду
-setInterval(updateBonusTimer, 1000);
   let score = 0;
   let energy = 100;
   let tapPower = 1;
@@ -232,27 +188,94 @@ setInterval(updateBonusTimer, 1000);
   let leaderboard = [];
   let playerName = 'Игрок';
 
+  let ownedSkins = ['gold'];
+  let activeSkin = 'gold';
+
+  let lastBonusDate = localStorage.getItem('lastBonusDate') || null;
+  let bonusStreak = parseInt(localStorage.getItem('bonusStreak')) || 0;
+
   const scoreEl = document.getElementById('score');
   const energyEl = document.getElementById('energy');
   const tapPowerEl = document.getElementById('tapPower');
   const levelEl = document.getElementById('level');
   const coin = document.getElementById('coin');
   const upgradeBtn = document.getElementById('upgradeBtn');
-<!-- ЕЖЕДНЕВНЫЙ БОНУС -->
-<div style="margin:15px 0;background:#12121f;border-radius:16px;padding:12px;">
-  <div style="font-size:14px;font-weight:bold;margin-bottom:8px;">🎁 Ежедневный бонус</div>
-  <button id="bonusBtn" style="background:linear-gradient(135deg, #f7971e, #ffd200); padding:12px 16px; border-radius:50px; border:none; font-weight:700; font-size:15px; width:100%; color:#0f0f1a; margin-top:0;">
-    🎁 Забрать бонус
-  </button>
-  <div style="font-size:12px; opacity:0.5; margin-top:5px;">
-    Следующий бонус через: <span id="bonusTimer">--:--:--</span>
-  </div>
-</div>
-  // ==================== ТАБЛИЦА ЛИДЕРОВ ====================
+
+  const bonusBtn = document.getElementById('bonusBtn');
+  const bonusTimer = document.getElementById('bonusTimer');
+
+  // ==================== ФОРМАТИРОВАНИЕ ====================
   function formatNumber(num) {
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
   }
 
+  // ==================== СКИНЫ ====================
+  const SKINS = [
+    { id: 'gold', emoji: '🪙', name: 'Золотая', price: 50 },
+    { id: 'diamond', emoji: '💎', name: 'Алмазная', price: 150 },
+    { id: 'plasma', emoji: '🌀', name: 'Плазменная', price: 500 },
+    { id: 'rainbow', emoji: '🌈', name: 'Радужная', price: 1500 },
+    { id: 'neon', emoji: '💜', name: 'Неоновая', price: 50000 },
+    { id: 'crystal', emoji: '❄️', name: 'Хрустальная', price: 100000 },
+    { id: 'legend_gold', emoji: '👑', name: 'Королевская', price: 1000000 },
+    { id: 'legend_dark', emoji: '🌑', name: 'Тёмная звезда', price: 2500000 },
+    { id: 'legend_cosmic', emoji: '🌌', name: 'Космическая', price: 5000000 },
+    { id: 'legend_god', emoji: '⚡', name: 'Божественная', price: 10000000 },
+  ];
+
+  function updateCoinSkin() {
+    const skin = SKINS.find(s => s.id === activeSkin);
+    if (skin) coin.textContent = skin.emoji;
+  }
+
+  function renderSkinShop() {
+    const shop = document.getElementById('skinShop');
+    if (!shop) return;
+    shop.innerHTML = '';
+    SKINS.forEach(skin => {
+      const isOwned = ownedSkins.includes(skin.id);
+      const isActive = activeSkin === skin.id;
+      const isLegendary = skin.price >= 1000000;
+      const isVip = skin.price >= 50000 && skin.price < 1000000;
+      const div = document.createElement('div');
+      div.className = 'skin-item ' + (isOwned ? 'owned' : 'locked') + (isActive ? ' active' : '') + (isVip ? ' vip' : '') + (isLegendary ? ' legendary' : '');
+      let badge = '';
+      if (isLegendary) badge = '<div class="skin-badge">🔥 LEGEND</div>';
+      else if (isVip) badge = '<div class="skin-badge" style="background:#ff6b6b;">⭐ VIP</div>';
+      const priceDisplay = isOwned ? (isActive ? '✅' : '📌') : (skin.price >= 1000000 ? '💎 ' + formatNumber(skin.price) : skin.price + '🪙');
+      div.innerHTML = '<div style="font-size:28px;">' + skin.emoji + '</div><div class="skin-price">' + priceDisplay + '</div>' + badge;
+      div.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (isOwned) {
+          activeSkin = skin.id;
+          localStorage.setItem('activeSkin', activeSkin);
+          updateCoinSkin();
+          renderSkinShop();
+          saveGame();
+        } else {
+          if (score < skin.price) {
+            alert('❌ Не хватает! Нужно ' + formatNumber(skin.price) + ' монет.');
+            return;
+          }
+          if (confirm('Купить "' + skin.name + '" за ' + formatNumber(skin.price) + ' монет?')) {
+            score -= skin.price;
+            ownedSkins.push(skin.id);
+            localStorage.setItem('ownedSkins', JSON.stringify(ownedSkins));
+            activeSkin = skin.id;
+            localStorage.setItem('activeSkin', activeSkin);
+            updateCoinSkin();
+            updateUI();
+            renderSkinShop();
+            saveGame();
+            if (isLegendary) alert('🎉✨ ПОЗДРАВЛЯЮ! Легендарный скин "' + skin.name + '" твой!');
+          }
+        }
+      });
+      shop.appendChild(div);
+    });
+  }
+
+  // ==================== ТАБЛИЦА ЛИДЕРОВ ====================
   function renderLeaderboard() {
     const list = document.getElementById('leaderboardList');
     if (!list) return;
@@ -282,18 +305,104 @@ setInterval(updateBonusTimer, 1000);
     renderLeaderboard();
   }
 
+  // ==================== ЕЖЕДНЕВНЫЙ БОНУС ====================
+  function getBonusAmount() {
+    return 50 + bonusStreak * 30;
+  }
+
+  function canClaimBonus() {
+    if (!lastBonusDate) return true;
+    var last = new Date(parseInt(lastBonusDate));
+    var now = new Date();
+    var diff = now - last;
+    var hoursPassed = diff / (1000 * 60 * 60);
+    return hoursPassed >= 24;
+  }
+
+  function updateBonusTimer() {
+    if (!lastBonusDate) {
+      bonusTimer.textContent = 'Готово!';
+      return;
+    }
+    var last = new Date(parseInt(lastBonusDate));
+    var next = new Date(last.getTime() + 24 * 60 * 60 * 1000);
+    var now = new Date();
+    var diff = next - now;
+
+    if (diff <= 0) {
+      bonusTimer.textContent = '🎯 Готово!';
+      return;
+    }
+
+    var hours = Math.floor(diff / (1000 * 60 * 60));
+    var minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    var seconds = Math.floor((diff % (1000 * 60)) / 1000);
+    bonusTimer.textContent =
+      String(hours).padStart(2, '0') + ':' +
+      String(minutes).padStart(2, '0') + ':' +
+      String(seconds).padStart(2, '0');
+  }
+
+  function updateBonusUI() {
+    if (canClaimBonus()) {
+      bonusBtn.textContent = '🎁 Забрать бонус';
+      bonusBtn.style.background = 'linear-gradient(135deg, #f7971e, #ffd200)';
+      bonusBtn.disabled = false;
+    } else {
+      bonusBtn.textContent = '⏳ Бонус недоступен';
+      bonusBtn.style.background = '#2a2a40';
+      bonusBtn.style.color = '#666';
+      bonusBtn.disabled = true;
+    }
+    updateBonusTimer();
+  }
+
+  function claimBonus() {
+    if (!canClaimBonus()) {
+      alert('⏳ Бонус ещё не готов! Подожди 24 часа.');
+      return;
+    }
+
+    var bonus = getBonusAmount();
+    var streak = bonusStreak + 1;
+
+    score += bonus;
+    bonusStreak = streak;
+    lastBonusDate = Date.now().toString();
+
+    localStorage.setItem('lastBonusDate', lastBonusDate);
+    localStorage.setItem('bonusStreak', bonusStreak.toString());
+
+    alert('🎉 День ' + streak + ' подряд! Ты получил ' + formatNumber(bonus) + ' монет!');
+
+    bonusBtn.style.transform = 'scale(0.9)';
+    setTimeout(function() { bonusBtn.style.transform = 'scale(1)'; }, 150);
+
+    updateUI();
+    updateBonusUI();
+    saveGame();
+  }
+
+  if (bonusBtn) {
+    bonusBtn.addEventListener('click', claimBonus);
+  }
+
+  setInterval(updateBonusTimer, 1000);
+
   // ==================== СОХРАНЕНИЕ ====================
- function saveGame() {
+  function saveGame() {
     var data = {
-      lastBonusDate: lastBonusDate,
-bonusStreak: bonusStreak
       score: score,
       energy: energy,
       tapPower: tapPower,
       level: level,
-      leaderboard: leaderboard
+      leaderboard: leaderboard,
+      ownedSkins: ownedSkins,
+      activeSkin: activeSkin,
+      lastBonusDate: lastBonusDate,
+      bonusStreak: bonusStreak
     };
-    localStorage.setItem('tapGameData', JSON.stringify(data)) ;
+    localStorage.setItem('tapGameData', JSON.stringify(data));
   }
 
   function loadGame() {
@@ -306,13 +415,17 @@ bonusStreak: bonusStreak
         tapPower = data.tapPower || 1;
         level = data.level || 1;
         if (data.leaderboard) leaderboard = data.leaderboard;
+        if (data.ownedSkins) ownedSkins = data.ownedSkins;
+        if (data.activeSkin) activeSkin = data.activeSkin;
         if (data.lastBonusDate) lastBonusDate = data.lastBonusDate;
-if (data.bonusStreak) bonusStreak = data.bonusStreak;
+        if (data.bonusStreak) bonusStreak = data.bonusStreak;
       }
     } catch(e) {}
-    updatebonusUI();
     updateUI();
+    updateCoinSkin();
+    renderSkinShop();
     renderLeaderboard();
+    updateBonusUI();
   }
 
   // ==================== UI ====================
