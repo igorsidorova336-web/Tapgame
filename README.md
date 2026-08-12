@@ -18,16 +18,18 @@
     }
     .app {
       background: #1a1a2e;
-      padding: 30px 20px 40px;
+      padding: 20px;
       border-radius: 32px;
       width: 100%;
-      max-width: 360px;
+      max-width: 380px;
       text-align: center;
       box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+      max-height: 98vh;
+      overflow-y: auto;
     }
     h1 { font-size: 22px; opacity: 0.7; margin-bottom: 5px; }
     .score {
-      font-size: 52px;
+      font-size: 48px;
       font-weight: 800;
       background: linear-gradient(135deg, #f5af19, #f12711);
       -webkit-background-clip: text;
@@ -35,21 +37,22 @@
       margin: 5px 0;
     }
     .coin {
-      font-size: 100px;
-      margin: 15px 0;
+      font-size: 80px;
+      margin: 10px 0;
       cursor: pointer;
       user-select: none;
       display: inline-block;
       transition: transform 0.08s ease;
+      -webkit-tap-highlight-color: transparent;
     }
     .coin:active { transform: scale(0.75); }
     .energy {
       background: #2a2a40;
-      padding: 8px 16px;
+      padding: 6px 16px;
       border-radius: 40px;
       display: inline-block;
-      margin: 5px 0 15px;
-      font-size: 16px;
+      margin: 5px 0 10px;
+      font-size: 15px;
       font-weight: 600;
     }
     .energy span { color: #4fc3f7; }
@@ -57,33 +60,29 @@
       display: flex;
       justify-content: space-between;
       background: #12121f;
-      padding: 12px 18px;
+      padding: 10px 16px;
       border-radius: 16px;
-      margin: 15px 0;
-      font-size: 14px;
+      margin: 10px 0;
+      font-size: 13px;
     }
     .stats div span { color: #f5c842; font-weight: bold; }
     button {
       background: #f5c842;
       border: none;
-      padding: 14px 20px;
+      padding: 12px 16px;
       border-radius: 50px;
       font-weight: 700;
-      font-size: 16px;
+      font-size: 15px;
       width: 100%;
       cursor: pointer;
       transition: 0.15s;
       color: #0f0f1a;
+      margin-top: 6px;
     }
     button:active { transform: scale(0.95); }
     button:disabled { opacity: 0.4; transform: none; }
-    .info {
-      font-size: 12px;
-      opacity: 0.4;
-      margin-top: 20px;
-    }
-  
-  /* Стили для скинов */
+    .info { font-size: 11px; opacity: 0.3; margin-top: 15px; }
+
     .skin-item {
       width: 56px;
       height: 66px;
@@ -109,7 +108,7 @@
     .skin-item.vip { border-color: #ff6b6b; background: #1a0a0a; }
     .skin-item.legendary { border-color: #ffd700; background: #1a1500; box-shadow: 0 0 20px rgba(255,215,0,0.15); }
     .skin-item.legendary .skin-price { color: #ffd700; font-weight: bold; }
-    /* Таблица лидеров */
+
     .leaderboard-entry {
       display: flex;
       justify-content: space-between;
@@ -130,6 +129,7 @@
       outline: none;
     }
     input::placeholder { color: #666; }
+
     #bonusBtn:disabled { opacity: 0.4; transform: none; }
   </style>
 </head>
@@ -144,6 +144,19 @@
     <div>📈 Уровень: <span id="level">1</span></div>
   </div>
   <button id="upgradeBtn">🔧 Улучшить тап (стоит 50)</button>
+
+  <!-- АВТОКЛИКЕР -->
+  <div style="margin:15px 0;background:#12121f;border-radius:16px;padding:12px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div style="font-size:14px;font-weight:bold;">🤖 Автокликер</div>
+        <div style="font-size:12px;opacity:0.6;">Уровень: <span id="autoLevel">0</span> (+<span id="autoIncome">0</span>/сек)</div>
+      </div>
+      <button id="autoBtn" style="width:auto;padding:8px 16px;font-size:13px;background:#4fc3f7;margin-top:0;">
+        Купить (<span id="autoPrice">1000</span>🪙)
+      </button>
+    </div>
+  </div>
 
   <!-- ЕЖЕДНЕВНЫЙ БОНУС -->
   <div style="margin:15px 0;background:#12121f;border-radius:16px;padding:12px;">
@@ -191,6 +204,9 @@
 
   let lastBonusDate = localStorage.getItem('lastBonusDate') || null;
   let bonusStreak = parseInt(localStorage.getItem('bonusStreak')) || 0;
+
+  let autoLevel = parseInt(localStorage.getItem('autoLevel')) || 0;
+  const autoBasePrice = 1000;
 
   const scoreEl = document.getElementById('score');
   const energyEl = document.getElementById('energy');
@@ -387,6 +403,47 @@
 
   setInterval(updateBonusTimer, 1000);
 
+  // ==================== АВТОКЛИКЕР ====================
+  function getAutoPrice() {
+    return Math.floor(autoBasePrice * Math.pow(1.5, autoLevel));
+  }
+
+  function getAutoIncome() {
+    return autoLevel * 0.5;
+  }
+
+  function updateAutoUI() {
+    document.getElementById('autoLevel').textContent = autoLevel;
+    document.getElementById('autoIncome').textContent = getAutoIncome().toFixed(1);
+    document.getElementById('autoPrice').textContent = getAutoPrice();
+  }
+
+  function buyAutoClicker() {
+    var price = getAutoPrice();
+    if (score < price) {
+      alert('❌ Нужно ' + formatNumber(price) + ' монет!');
+      return;
+    }
+    score -= price;
+    autoLevel += 1;
+    localStorage.setItem('autoLevel', autoLevel);
+    updateUI();
+    updateAutoUI();
+    saveGame();
+  }
+
+  // Пассивный доход (каждую секунду)
+  setInterval(function() {
+    if (autoLevel > 0) {
+      var income = getAutoIncome();
+      score += income;
+      updateUI();
+    }
+  }, 1000);
+
+  // Кнопка автокликера
+  document.getElementById('autoBtn').addEventListener('click', buyAutoClicker);
+
   // ==================== СОХРАНЕНИЕ ====================
   function saveGame() {
     var data = {
@@ -398,7 +455,8 @@
       ownedSkins: ownedSkins,
       activeSkin: activeSkin,
       lastBonusDate: lastBonusDate,
-      bonusStreak: bonusStreak
+      bonusStreak: bonusStreak,
+      autoLevel: autoLevel
     };
     localStorage.setItem('tapGameData', JSON.stringify(data));
   }
@@ -417,6 +475,7 @@
         if (data.activeSkin) activeSkin = data.activeSkin;
         if (data.lastBonusDate) lastBonusDate = data.lastBonusDate;
         if (data.bonusStreak) bonusStreak = data.bonusStreak;
+        if (data.autoLevel) autoLevel = data.autoLevel;
       }
     } catch(e) {}
     updateUI();
@@ -424,6 +483,7 @@
     renderSkinShop();
     renderLeaderboard();
     updateBonusUI();
+    updateAutoUI();
   }
 
   // ==================== UI ====================
@@ -494,59 +554,51 @@
   }
 
   // Кнопка сохранить в таблицу
-  document.getElementById('saveScoreBtn').addE
-  // Кнопка сохранить в таблицу (1 раз в день)
-document.getElementById('saveScoreBtn').addEventListener('click', function() {
-  var currentScore = Math.floor(score);
-  
-  // Проверяем, сохранял ли уже сегодня
-  var lastSaveDate = localStorage.getItem('lastLeaderboardSave');
-  var today = new Date().toDateString();
-  
-  if (lastSaveDate === today) {
-    alert('⏳ Ты уже сохранял результат сегодня! Возвращайся завтра.');
-    return;
-  }
-  
-  if (currentScore === 0) {
-    alert('Сначала набери монеты!');
-    return;
-  }
-  
-  // Проверяем, есть ли уже запись для этого игрока
-  var existing = -1;
-  for (var i = 0; i < leaderboard.length; i++) {
-    if (leaderboard[i].name === playerName) {
-      existing = i;
-      break;
-    }
-  }
-  
-  if (existing !== -1) {
-    // Если запись есть — обновляем только если новый счёт больше
-    if (currentScore > leaderboard[existing].score) {
-      leaderboard[existing].score = currentScore;
-    } else {
-      alert('У тебя уже есть рекорд: ' + formatNumber(leaderboard[existing].score) + ' монет. Новый счёт ' + formatNumber(currentScore) + ' — не побит.');
+  document.getElementById('saveScoreBtn').addEventListener('click', function() {
+    var currentScore = Math.floor(score);
+    
+    // Проверяем, сохранял ли уже сегодня
+    var lastSaveDate = localStorage.getItem('lastLeaderboardSave');
+    var today = new Date().toDateString();
+    
+    if (lastSaveDate === today) {
+      alert('⏳ Ты уже сохранял результат сегодня! Возвращайся завтра.');
       return;
     }
-  } else {
-    // Если записи нет — добавляем новую
-    leaderboard.push({ name: playerName, score: currentScore });
-  }
-  
-  // Сортируем и оставляем топ-10
-  leaderboard.sort(function(a, b) { return b.score - a.score; });
-  if (leaderboard.length > 10) leaderboard = leaderboard.slice(0, 10);
-  
-  // Сохраняем дату последнего сохранения
-  localStorage.setItem('lastLeaderboardSave', today);
-  
-  saveLeaderboard();
-  saveGame();
-  renderLeaderboard();
-  alert('✅ Результат сохранён в таблицу лидеров! Возвращайся завтра за новым рекордом!');
-});
+    
+    if (currentScore === 0) {
+      alert('Сначала набери монеты!');
+      return;
+    }
+    
+    var existing = -1;
+    for (var i = 0; i < leaderboard.length; i++) {
+      if (leaderboard[i].name === playerName) {
+        existing = i;
+        break;
+      }
+    }
+    
+    if (existing !== -1) {
+      if (currentScore > leaderboard[existing].score) {
+        leaderboard[existing].score = currentScore;
+      } else {
+        alert('У тебя уже есть рекорд: ' + formatNumber(leaderboard[existing].score) + ' монет. Новый счёт ' + formatNumber(currentScore) + ' — не побит.');
+        return;
+      }
+    } else {
+      leaderboard.push({ name: playerName, score: currentScore });
+    }
+    
+    leaderboard.sort(function(a, b) { return b.score - a.score; });
+    if (leaderboard.length > 10) leaderboard = leaderboard.slice(0, 10);
+    
+    localStorage.setItem('lastLeaderboardSave', today);
+    
+    saveLeaderboard();
+    saveGame();
+    renderLeaderboard();
+    alert('✅ Результат сохранён в таблицу лидеров! Возвращайся завтра за новым рекордом!');
   });
 
   // ==================== АВТОСОХРАНЕНИЕ ====================
