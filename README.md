@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Tap Game</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -27,6 +27,9 @@
       box-shadow: 0 20px 40px rgba(0,0,0,0.6);
       max-height: 98vh;
       overflow-y: auto;
+      transition: background 0.3s ease;
+      background-size: cover;
+      background-position: center;
     }
     h1 { font-size: 22px; opacity: 0.7; margin-bottom: 5px; }
     .score {
@@ -37,16 +40,15 @@
       -webkit-text-fill-color: transparent;
       margin: 5px 0;
     }
-    .coin {
-      font-size: 80px;
-      margin: 10px 0;
+    #coin3d {
+      width: 150px;
+      height: 150px;
+      margin: 10px auto;
       cursor: pointer;
-      user-select: none;
-      display: inline-block;
-      transition: transform 0.08s ease;
-      -webkit-tap-highlight-color: transparent;
     }
-    .coin:active { transform: scale(0.75); }
+    .coin {
+      display: none;
+    }
     .energy {
       background: #2a2a40;
       padding: 6px 16px;
@@ -83,6 +85,7 @@
     button:active { transform: scale(0.95); }
     button:disabled { opacity: 0.4; transform: none; }
     .info { font-size: 11px; opacity: 0.3; margin-top: 15px; }
+
     .skin-item {
       width: 56px;
       height: 66px;
@@ -108,6 +111,7 @@
     .skin-item.vip { border-color: #ff6b6b; background: #1a0a0a; }
     .skin-item.legendary { border-color: #ffd700; background: #1a1500; box-shadow: 0 0 20px rgba(255,215,0,0.15); }
     .skin-item.legendary .skin-price { color: #ffd700; font-weight: bold; }
+
     .leaderboard-entry {
       display: flex;
       justify-content: space-between;
@@ -133,11 +137,15 @@
   </style>
 </head>
 <body>
-<div class="app">
+<div class="app" id="app">
   <h1>💰 КЛИКЕР</h1>
+  <div style="font-size:13px;opacity:0.5;margin-bottom:5px;">👥 Онлайн: <span id="onlineCount">0</span> игроков</div>
   <div class="score" id="score">0</div>
-  <div id="coin3d" style="width:150px;height:150px;margin:10px auto;cursor:pointer;"></div>
-<div class="coin" id="coin" style="display:none;">🪙</div>
+  
+  <!-- 3D МОНЕТКА -->
+  <div id="coin3d"></div>
+  <div class="coin" id="coin">🪙</div>
+  
   <div class="energy">⚡ Энергия: <span id="energy">100</span>%</div>
   <div class="stats">
     <div>👆 Сила: <span id="tapPower">1</span></div>
@@ -175,6 +183,25 @@
     <div id="skinShop" style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;"></div>
   </div>
 
+  <!-- НАСТРОЙКА ФОНА -->
+  <div style="margin:15px 0;background:#12121f;border-radius:16px;padding:12px;">
+    <div style="font-size:14px;font-weight:bold;margin-bottom:8px;">🎨 Фон</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:8px;">
+      <button onclick="setBackground('#0f0f1a')" style="width:30px;height:30px;border-radius:50%;background:#0f0f1a;border:2px solid #fff;padding:0;margin:0;"></button>
+      <button onclick="setBackground('#1a1a2e')" style="width:30px;height:30px;border-radius:50%;background:#1a1a2e;border:2px solid #fff;padding:0;margin:0;"></button>
+      <button onclick="setBackground('#16213e')" style="width:30px;height:30px;border-radius:50%;background:#16213e;border:2px solid #fff;padding:0;margin:0;"></button>
+      <button onclick="setBackground('#0f3460')" style="width:30px;height:30px;border-radius:50%;background:#0f3460;border:2px solid #fff;padding:0;margin:0;"></button>
+      <button onclick="setBackground('#2d132c')" style="width:30px;height:30px;border-radius:50%;background:#2d132c;border:2px solid #fff;padding:0;margin:0;"></button>
+      <button onclick="setBackground('#1b4332')" style="width:30px;height:30px;border-radius:50%;background:#1b4332;border:2px solid #fff;padding:0;margin:0;"></button>
+      <button onclick="setBackground('#4a1942')" style="width:30px;height:30px;border-radius:50%;background:#4a1942;border:2px solid #fff;padding:0;margin:0;"></button>
+    </div>
+    <div style="display:flex;gap:6px;">
+      <button id="uploadBgBtn" style="width:auto;padding:8px 16px;font-size:12px;background:#4fc3f7;margin-top:0;">📁 Из галереи</button>
+      <button onclick="resetBackground()" style="width:auto;padding:8px 16px;font-size:12px;background:#ff6b6b;margin-top:0;">🔄 Сбросить</button>
+    </div>
+    <input type="file" id="bgFileInput" accept="image/*" style="display:none;">
+  </div>
+
   <!-- ТАБЛИЦА ЛИДЕРОВ -->
   <div style="margin:15px 0;background:#12121f;border-radius:16px;padding:12px;">
     <div style="font-size:14px;font-weight:bold;margin-bottom:10px;">🏆 Таблица лидеров</div>
@@ -190,127 +217,6 @@
 
 <script>
   // ==================== ПЕРЕМЕННЫЕ ====================
-  // ==================== 3D МОНЕТКА ====================
-function init3DCoin() {
-  // Сохраняем ссылку на монетку для смены цвета
-window.coinMesh = coinMesh;
-window.coinMaterial = material;
-  const container = document.getElementById('coin3d');
-  if (!container) return;
-  
-  // Создаём сцену
-  const scene = new THREE.Scene();
-  
-  // Камера
-  const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
-  camera.position.z = 3.5;
-  
-  // Рендерер
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-  renderer.setSize(150, 150);
-  renderer.setPixelRatio(window.devicePixelRatio);
-  renderer.shadowMap.enabled = true;
-  container.appendChild(renderer.domElement);
-  
-  // Свет
-  const light = new THREE.DirectionalLight(0xffffff, 1);
-  light.position.set(2, 3, 4);
-  scene.add(light);
-  
-  const ambientLight = new THREE.AmbientLight(0x404060);
-  scene.add(ambientLight);
-  
-  const backLight = new THREE.DirectionalLight(0xffdd88, 0.5);
-  backLight.position.set(-2, -1, -3);
-  scene.add(backLight);
-  
-  // Создаём монетку
-  const geometry = new THREE.CylinderGeometry(1, 1, 0.3, 64);
-  
-  // Материал золотой монеты
-  const material = new THREE.MeshStandardMaterial({
-    color: 0xf5c842,
-    metalness: 0.7,
-    roughness: 0.3,
-    emissive: 0x553300,
-    emissiveIntensity: 0.1,
-  });
-  
-  const coinMesh = new THREE.Mesh(geometry, material);
-  coinMesh.rotation.x = Math.PI / 6;
-  coinMesh.castShadow = true;
-  scene.add(coinMesh);
-  
-  // Добавляем надпись или узор на монету
-  const textGeo = new THREE.TorusGeometry(0.6, 0.05, 16, 32);
-  const textMat = new THREE.MeshStandardMaterial({
-    color: 0xffaa00,
-    metalness: 0.9,
-    roughness: 0.2,
-  });
-  const ring = new THREE.Mesh(textGeo, textMat);
-  ring.rotation.x = Math.PI / 2;
-  ring.position.z = 0.16;
-  coinMesh.add(ring);
-  
-  // Звёздочка в центре
-  const starGeo = new THREE.OctahedronGeometry(0.15);
-  const starMat = new THREE.MeshStandardMaterial({
-    color: 0xffdd44,
-    metalness: 0.8,
-    roughness: 0.2,
-    emissive: 0xff8800,
-    emissiveIntensity: 0.2,
-  });
-  const star = new THREE.Mesh(starGeo, starMat);
-  star.position.z = 0.17;
-  star.scale.set(1, 1, 0.3);
-  coinMesh.add(star);
-  
-  // Анимация вращения
-  let mouseDown = false;
-  let targetScale = 1;
-  
-  function animate() {
-    requestAnimationFrame(animate);
-    
-    // Вращение
-    coinMesh.rotation.y += 0.01;
-    coinMesh.rotation.x = Math.PI / 6 + Math.sin(Date.now() * 0.001) * 0.02;
-    
-    // Анимация нажатия
-    const currentScale = coinMesh.scale.x;
-    coinMesh.scale.set(
-      currentScale + (targetScale - currentScale) * 0.1,
-      currentScale + (targetScale - currentScale) * 0.1,
-      currentScale + (targetScale - currentScale) * 0.1
-    );
-    
-    renderer.render(scene, camera);
-  }
-  animate();
-  
-  // Клик по монетке
-  container.addEventListener('click', function(e) {
-    targetScale = 0.7;
-    setTimeout(() => { targetScale = 1; }, 100);
-    
-    // Вызываем обычный обработчик тапа
-    if (typeof handleTap === 'function') {
-      handleTap(e);
-    }
-  });
-  
-  // Обновляем размер при изменении окна
-  window.addEventListener('resize', function() {
-    const rect = container.getBoundingClientRect();
-    const size = Math.min(rect.width, rect.height, 150);
-    renderer.setSize(size, size);
-  });
-}
-
-// Запускаем 3D монетку после загрузки страницы
-setTimeout(init3DCoin, 100);
   let score = 0;
   let energy = 100;
   let tapPower = 1;
@@ -344,32 +250,188 @@ setTimeout(init3DCoin, 100);
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
   }
 
-  // ==================== СКИНЫ ====================
-const SKINS = [
-  { id: 'gold', emoji: '🪙', name: 'Золотая', price: 50, color: 0xf5c842 },
-  { id: 'diamond', emoji: '💎', name: 'Алмазная', price: 150, color: 0xb9f2ff },
-  { id: 'plasma', emoji: '🌀', name: 'Плазменная', price: 500, color: 0x00ffcc },
-  { id: 'rainbow', emoji: '🌈', name: 'Радужная', price: 1500, color: 0xff6bff },
-  { id: 'neon', emoji: '💜', name: 'Неоновая', price: 50000, color: 0xcc00ff },
-  { id: 'crystal', emoji: '❄️', name: 'Хрустальная', price: 100000, color: 0x88ddff },
-  { id: 'legend_gold', emoji: '👑', name: 'Королевская', price: 1000000, color: 0xffd700 },
-  { id: 'legend_dark', emoji: '🌑', name: 'Тёмная звезда', price: 2500000, color: 0x2a0a2a },
-  { id: 'legend_cosmic', emoji: '🌌', name: 'Космическая', price: 5000000, color: 0x4a00ff },
-  { id: 'legend_god', emoji: '⚡', name: 'Божественная', price: 10000000, color: 0xffaa00 },
-];
-function updateCoinSkin() {
-  const skin = SKINS.find(s => s.id === activeSkin);
-  if (skin) {
-    // Меняем эмодзи (скрытая монетка)
-    coin.textContent = skin.emoji;
-    // Меняем цвет 3D-монетки
-    if (window.coinMaterial && skin.color !== undefined) {
-      window.coinMaterial.color.setHex(skin.color);
-      window.coinMaterial.emissive.setHex(skin.color);
-      window.coinMaterial.emissiveIntensity = 0.15;
+  // ==================== СКИНЫ (с цветами для 3D) ====================
+  const SKINS = [
+    { id: 'gold', emoji: '🪙', name: 'Золотая', price: 50, color: 0xf5c842 },
+    { id: 'diamond', emoji: '💎', name: 'Алмазная', price: 150, color: 0xb9f2ff },
+    { id: 'plasma', emoji: '🌀', name: 'Плазменная', price: 500, color: 0x00ffcc },
+    { id: 'rainbow', emoji: '🌈', name: 'Радужная', price: 1500, color: 0xff6bff },
+    { id: 'neon', emoji: '💜', name: 'Неоновая', price: 50000, color: 0xcc00ff },
+    { id: 'crystal', emoji: '❄️', name: 'Хрустальная', price: 100000, color: 0x88ddff },
+    { id: 'legend_gold', emoji: '👑', name: 'Королевская', price: 1000000, color: 0xffd700 },
+    { id: 'legend_dark', emoji: '🌑', name: 'Тёмная звезда', price: 2500000, color: 0x2a0a2a },
+    { id: 'legend_cosmic', emoji: '🌌', name: 'Космическая', price: 5000000, color: 0x4a00ff },
+    { id: 'legend_god', emoji: '⚡', name: 'Божественная', price: 10000000, color: 0xffaa00 },
+  ];
+
+  // ==================== ФОН ====================
+  function setBackground(color) {
+    document.getElementById('app').style.background = color;
+    localStorage.setItem('gameBackground', color);
+  }
+
+  function setBackgroundImage(imageData) {
+    document.getElementById('app').style.backgroundImage = 'url(' + imageData + ')';
+    document.getElementById('app').style.backgroundSize = 'cover';
+    document.getElementById('app').style.backgroundPosition = 'center';
+    localStorage.setItem('gameBackgroundImage', imageData);
+  }
+
+  function resetBackground() {
+    document.getElementById('app').style.background = '#1a1a2e';
+    document.getElementById('app').style.backgroundImage = 'none';
+    localStorage.removeItem('gameBackground');
+    localStorage.removeItem('gameBackgroundImage');
+  }
+
+  function loadBackground() {
+    var savedImage = localStorage.getItem('gameBackgroundImage');
+    if (savedImage) {
+      document.getElementById('app').style.backgroundImage = 'url(' + savedImage + ')';
+      document.getElementById('app').style.backgroundSize = 'cover';
+      document.getElementById('app').style.backgroundPosition = 'center';
+    } else if (localStorage.getItem('gameBackground')) {
+      document.getElementById('app').style.background = localStorage.getItem('gameBackground');
     }
   }
-}
+
+  document.getElementById('uploadBgBtn').addEventListener('click', function() {
+    document.getElementById('bgFileInput').click();
+  });
+
+  document.getElementById('bgFileInput').addEventListener('change', function(e) {
+    var file = e.target.files[0];
+    if (file) {
+      var reader = new FileReader();
+      reader.onload = function(event) {
+        setBackgroundImage(event.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+    this.value = '';
+  });
+
+  // ==================== 3D МОНЕТКА ====================
+  function init3DCoin() {
+    const container = document.getElementById('coin3d');
+    if (!container) return;
+    
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+    camera.position.z = 3.5;
+    
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(150, 150);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    container.appendChild(renderer.domElement);
+    
+    const light = new THREE.DirectionalLight(0xffffff, 1);
+    light.position.set(2, 3, 4);
+    scene.add(light);
+    
+    const ambientLight = new THREE.AmbientLight(0x404060);
+    scene.add(ambientLight);
+    
+    const backLight = new THREE.DirectionalLight(0xffdd88, 0.5);
+    backLight.position.set(-2, -1, -3);
+    scene.add(backLight);
+    
+    const geometry = new THREE.CylinderGeometry(1, 1, 0.3, 64);
+    const material = new THREE.MeshStandardMaterial({
+      color: 0xf5c842,
+      metalness: 0.7,
+      roughness: 0.3,
+      emissive: 0x553300,
+      emissiveIntensity: 0.1,
+    });
+    
+    const coinMesh = new THREE.Mesh(geometry, material);
+    coinMesh.rotation.x = Math.PI / 6;
+    coinMesh.castShadow = true;
+    scene.add(coinMesh);
+    
+    const textGeo = new THREE.TorusGeometry(0.6, 0.05, 16, 32);
+    const textMat = new THREE.MeshStandardMaterial({
+      color: 0xffaa00,
+      metalness: 0.9,
+      roughness: 0.2,
+    });
+    const ring = new THREE.Mesh(textGeo, textMat);
+    ring.rotation.x = Math.PI / 2;
+    ring.position.z = 0.16;
+    coinMesh.add(ring);
+    
+    const starGeo = new THREE.OctahedronGeometry(0.15);
+    const starMat = new THREE.MeshStandardMaterial({
+      color: 0xffdd44,
+      metalness: 0.8,
+      roughness: 0.2,
+      emissive: 0xff8800,
+      emissiveIntensity: 0.2,
+    });
+    const star = new THREE.Mesh(starGeo, starMat);
+    star.position.z = 0.17;
+    star.scale.set(1, 1, 0.3);
+    coinMesh.add(star);
+    
+    // Сохраняем для смены цвета
+    window.coinMaterial = material;
+    window.coinMesh = coinMesh;
+    
+    let targetScale = 1;
+    
+    function animate() {
+      requestAnimationFrame(animate);
+      coinMesh.rotation.y += 0.01;
+      coinMesh.rotation.x = Math.PI / 6 + Math.sin(Date.now() * 0.001) * 0.02;
+      
+      const currentScale = coinMesh.scale.x;
+      coinMesh.scale.set(
+        currentScale + (targetScale - currentScale) * 0.1,
+        currentScale + (targetScale - currentScale) * 0.1,
+        currentScale + (targetScale - currentScale) * 0.1
+      );
+      
+      renderer.render(scene, camera);
+    }
+    animate();
+    
+    container.addEventListener('click', function(e) {
+      targetScale = 0.7;
+      setTimeout(() => { targetScale = 1; }, 100);
+      if (typeof handleTap === 'function') {
+        handleTap(e);
+      }
+    });
+    
+    window.addEventListener('resize', function() {
+      const rect = container.getBoundingClientRect();
+      const size = Math.min(rect.width, rect.height, 150);
+      renderer.setSize(size, size);
+    });
+  }
+
+  // ==================== ОНЛАЙН ====================
+  function updateOnline() {
+    document.getElementById('onlineCount').textContent = Math.floor(Math.random() * 12) + 3;
+  }
+  updateOnline();
+  setInterval(updateOnline, 15000);
+
+  // ==================== СКИНЫ ====================
+  function updateCoinSkin() {
+    const skin = SKINS.find(s => s.id === activeSkin);
+    if (skin) {
+      coin.textContent = skin.emoji;
+      if (window.coinMaterial && skin.color !== undefined) {
+        window.coinMaterial.color.setHex(skin.color);
+        window.coinMaterial.emissive.setHex(skin.color);
+        window.coinMaterial.emissiveIntensity = 0.15;
+      }
+    }
+  }
+
   function renderSkinShop() {
     const shop = document.getElementById('skinShop');
     if (!shop) return;
@@ -560,7 +622,6 @@ function updateCoinSkin() {
     saveGame();
   }
 
-  // Пассивный доход (каждую секунду)
   setInterval(function() {
     if (autoLevel > 0) {
       var income = getAutoIncome();
@@ -569,7 +630,6 @@ function updateCoinSkin() {
     }
   }, 1000);
 
-  // Кнопка автокликера
   document.getElementById('autoBtn').addEventListener('click', buyAutoClicker);
 
   // ==================== СОХРАНЕНИЕ ====================
@@ -612,6 +672,7 @@ function updateCoinSkin() {
     renderLeaderboard();
     updateBonusUI();
     updateAutoUI();
+    loadBackground();
   }
 
   // ==================== UI ====================
@@ -633,9 +694,6 @@ function updateCoinSkin() {
     }
     energy -= 1;
     score += tapPower;
-    coin.style.transform = 'scale(0.7)';
-    setTimeout(function() { coin.style.transform = 'scale(1)'; }, 90);
-    if (navigator.vibrate) navigator.vibrate(10);
     updateUI();
   }
 
@@ -662,15 +720,8 @@ function updateCoinSkin() {
   }
 
   // ==================== СОБЫТИЯ ====================
-  coin.addEventListener('click', handleTap);
-  coin.addEventListener('touchend', function(e) {
-    e.preventDefault();
-    handleTap(e);
-  }, { passive: false });
-
   upgradeBtn.addEventListener('click', buyUpgrade);
 
-  // Имя игрока
   var nameInput = document.getElementById('playerNameInput');
   if (nameInput) {
     nameInput.value = playerName;
@@ -681,11 +732,8 @@ function updateCoinSkin() {
     });
   }
 
-  // Кнопка сохранить в таблицу
   document.getElementById('saveScoreBtn').addEventListener('click', function() {
     var currentScore = Math.floor(score);
-    
-    // Проверяем, сохранял ли уже сегодня
     var lastSaveDate = localStorage.getItem('lastLeaderboardSave');
     var today = new Date().toDateString();
     
@@ -719,31 +767,4 @@ function updateCoinSkin() {
     }
     
     leaderboard.sort(function(a, b) { return b.score - a.score; });
-    if (leaderboard.length > 10) leaderboard = leaderboard.slice(0, 10);
-    
-    localStorage.setItem('lastLeaderboardSave', today);
-    
-    saveLeaderboard();
-    saveGame();
-    renderLeaderboard();
-    alert('✅ Результат сохранён в таблицу лидеров! Возвращайся завтра за новым рекордом!');
-  });
-
-  // ==================== АВТОСОХРАНЕНИЕ ====================
-  setInterval(saveGame, 5000);
-  window.addEventListener('beforeunload', saveGame);
-
-  // ==================== СТАРТ ====================
-  loadGame();
-  // ==================== СМЕНА ЦВЕТА 3D-МОНЕТКИ ====================
-function update3DCoinColor(colorHex) {
-  if (window.coinMaterial) {
-    window.coinMaterial.color.setHex(colorHex);
-    // Добавляем эффект свечения
-    window.coinMaterial.emissive.setHex(colorHex);
-    window.coinMaterial.emissiveIntensity = 0.15;
-  }
-}
-</script>
-</body>
-</html>
+    if (leaderboard.length > 10
