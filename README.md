@@ -127,6 +127,21 @@
   </style>
 </head>
 <body>
+ <!-- ТАБЛИЦА ЛИДЕРОВ -->
+<div style="margin: 15px 0; background: #12121f; border-radius: 16px; padding: 12px;">
+  <div style="font-size: 14px; font-weight: bold; margin-bottom: 10px;">🏆 Таблица лидеров</div>
+  
+  <!-- Ввод имени -->
+  <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+    <input id="playerNameInput" type="text" placeholder="Твоё имя" style="flex: 1; padding: 8px 12px; border-radius: 30px; border: none; background: #2a2a40; color: white; font-size: 14px;">
+    <button id="saveScoreBtn" style="width: auto; padding: 8px 20px; font-size: 14px; background: #4fc3f7; border: none; border-radius: 30px; font-weight: bold; color: #0f0f1a;">Сохранить</button>
+  </div>
+  
+  <!-- Список лидеров -->
+  <div id="leaderboardList" style="text-align: left; font-size: 14px;">
+    <div style="opacity: 0.4; text-align: center; padding: 10px;">Нет записей. Стань первым! 🚀</div>
+  </div>
+</div>
 <div class="app">
   <h1>💰 КЛИКЕР</h1>
   <div class="score" id="score">0</div>
@@ -445,6 +460,11 @@ function claimBonus() {
     setTimeout(() => bonusBtn.style.transform = 'scale(1)', 150);
     
     updateUI();
+ // Автосохранение рекорда (если текущий счёт больше минимального в топ-10)
+const minScore = leaderboard.length >= 10 ? leaderboard[leaderboard.length - 1].score : 0;
+if (Math.floor(score) > minScore && !leaderboard.some(e => e.name === playerName && e.score === Math.floor(score))) {
+  // Сохраняем новый рекорд
+}
     updateBonusUI();
 }
 
@@ -471,6 +491,73 @@ bonusBtn.addEventListener('click', claimBonus);
 
 // Загружаем состояние при старте
 updateBonusUI();
+ // ---------- ТАБЛИЦА ЛИДЕРОВ ----------
+let playerName = localStorage.getItem('playerName') || 'Игрок';
+let leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
+
+// Загружаем имя игрока
+document.getElementById('playerNameInput').value = playerName;
+
+// Сохраняем имя при вводе
+document.getElementById('playerNameInput').addEventListener('input', function() {
+  playerName = this.value || 'Игрок';
+  localStorage.setItem('playerName', playerName);
+});
+
+// Сохраняем результат в таблицу
+document.getElementById('saveScoreBtn').addEventListener('click', function() {
+  const currentScore = Math.floor(score);
+  
+  // Добавляем запись
+  leaderboard.push({
+    name: playerName,
+    score: currentScore,
+    date: new Date().toLocaleDateString()
+  });
+  
+  // Сортируем по убыванию
+  leaderboard.sort((a, b) => b.score - a.score);
+  
+  // Оставляем только топ-10
+  if (leaderboard.length > 10) {
+    leaderboard = leaderboard.slice(0, 10);
+  }
+  
+  // Сохраняем
+  localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
+  
+  // Обновляем отображение
+  renderLeaderboard();
+  
+  alert('✅ Твой результат сохранён в таблицу лидеров!');
+});
+
+// Отрисовка таблицы
+function renderLeaderboard() {
+  const list = document.getElementById('leaderboardList');
+  
+  if (leaderboard.length === 0) {
+    list.innerHTML = '<div style="opacity: 0.4; text-align: center; padding: 10px;">Нет записей. Стань первым! 🚀</div>';
+    return;
+  }
+  
+  let html = '';
+  leaderboard.forEach((entry, index) => {
+    const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
+    const isYou = entry.name === playerName ? ' ⭐' : '';
+    html += `
+      <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #1a1a2e;">
+        <span>${medal} ${entry.name}${isYou}</span>
+        <span style="color: #f5c842; font-weight: bold;">${formatNumber(entry.score)} 🪙</span>
+      </div>
+    `;
+  });
+  
+  list.innerHTML = html;
+}
+
+// Загружаем таблицу при старте
+renderLeaderboard(); 
 </script>
 </body>
 </html>
