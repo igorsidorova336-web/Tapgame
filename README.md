@@ -86,6 +86,43 @@
       font-size: 12px;
       opacity: 0.4;
       margin-top: 20px;
+     /* Стили для скинов */
+.skin-item {
+  width: 60px;
+  height: 70px;
+  background: #1a1a2e;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: 0.15s;
+  font-size: 28px;
+  padding: 5px;
+}
+.skin-item:active { transform: scale(0.9); }
+.skin-item.owned { border-color: #4caf50; }
+.skin-item.active { border-color: #f5c842; box-shadow: 0 0 15px rgba(245,200,66,0.3); }
+.skin-item.locked { opacity: 0.4; }
+.skin-price {
+  font-size: 10px;
+  color: #aaa;
+  margin-top: 2px;
+}
+.skin-badge {
+  font-size: 8px;
+  background: #ffd700;
+  color: #000;
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-weight: bold;
+  margin-top: 2px;
+}
+.skin-item.vip { border-color: #ff6b6b; background: #1a0a0a; }
+.skin-item.legendary { border-color: #ffd700; background: #1a1500; box-shadow: 0 0 20px rgba(255,215,0,0.15); }
+.skin-item.legendary .skin-price { color: #ffd700; font-weight: bold; }
     }
   </style>
 </head>
