@@ -82,8 +82,8 @@
       opacity: 0.4;
       margin-top: 20px;
     }
-
-    /* Стили для скинов */
+  
+  /* Стили для скинов */
     .skin-item {
       width: 56px;
       height: 66px;
@@ -109,7 +109,6 @@
     .skin-item.vip { border-color: #ff6b6b; background: #1a0a0a; }
     .skin-item.legendary { border-color: #ffd700; background: #1a1500; box-shadow: 0 0 20px rgba(255,215,0,0.15); }
     .skin-item.legendary .skin-price { color: #ffd700; font-weight: bold; }
-
     /* Таблица лидеров */
     .leaderboard-entry {
       display: flex;
@@ -131,7 +130,6 @@
       outline: none;
     }
     input::placeholder { color: #666; }
-
     #bonusBtn:disabled { opacity: 0.4; transform: none; }
   </style>
 </head>
