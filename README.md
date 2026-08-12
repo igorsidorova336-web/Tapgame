@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Tap Game</title>
@@ -82,7 +83,6 @@
     button:active { transform: scale(0.95); }
     button:disabled { opacity: 0.4; transform: none; }
     .info { font-size: 11px; opacity: 0.3; margin-top: 15px; }
-
     .skin-item {
       width: 56px;
       height: 66px;
@@ -108,7 +108,6 @@
     .skin-item.vip { border-color: #ff6b6b; background: #1a0a0a; }
     .skin-item.legendary { border-color: #ffd700; background: #1a1500; box-shadow: 0 0 20px rgba(255,215,0,0.15); }
     .skin-item.legendary .skin-price { color: #ffd700; font-weight: bold; }
-
     .leaderboard-entry {
       display: flex;
       justify-content: space-between;
@@ -137,7 +136,8 @@
 <div class="app">
   <h1>💰 КЛИКЕР</h1>
   <div class="score" id="score">0</div>
-  <div class="coin" id="coin">🪙</div>
+  <div id="coin3d" style="width:150px;height:150px;margin:10px auto;cursor:pointer;"></div>
+<div class="coin" id="coin" style="display:none;">🪙</div>
   <div class="energy">⚡ Энергия: <span id="energy">100</span>%</div>
   <div class="stats">
     <div>👆 Сила: <span id="tapPower">1</span></div>
@@ -190,6 +190,124 @@
 
 <script>
   // ==================== ПЕРЕМЕННЫЕ ====================
+  // ==================== 3D МОНЕТКА ====================
+function init3DCoin() {
+  const container = document.getElementById('coin3d');
+  if (!container) return;
+  
+  // Создаём сцену
+  const scene = new THREE.Scene();
+  
+  // Камера
+  const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+  camera.position.z = 3.5;
+  
+  // Рендерер
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setSize(150, 150);
+  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.shadowMap.enabled = true;
+  container.appendChild(renderer.domElement);
+  
+  // Свет
+  const light = new THREE.DirectionalLight(0xffffff, 1);
+  light.position.set(2, 3, 4);
+  scene.add(light);
+  
+  const ambientLight = new THREE.AmbientLight(0x404060);
+  scene.add(ambientLight);
+  
+  const backLight = new THREE.DirectionalLight(0xffdd88, 0.5);
+  backLight.position.set(-2, -1, -3);
+  scene.add(backLight);
+  
+  // Создаём монетку
+  const geometry = new THREE.CylinderGeometry(1, 1, 0.3, 64);
+  
+  // Материал золотой монеты
+  const material = new THREE.MeshStandardMaterial({
+    color: 0xf5c842,
+    metalness: 0.7,
+    roughness: 0.3,
+    emissive: 0x553300,
+    emissiveIntensity: 0.1,
+  });
+  
+  const coinMesh = new THREE.Mesh(geometry, material);
+  coinMesh.rotation.x = Math.PI / 6;
+  coinMesh.castShadow = true;
+  scene.add(coinMesh);
+  
+  // Добавляем надпись или узор на монету
+  const textGeo = new THREE.TorusGeometry(0.6, 0.05, 16, 32);
+  const textMat = new THREE.MeshStandardMaterial({
+    color: 0xffaa00,
+    metalness: 0.9,
+    roughness: 0.2,
+  });
+  const ring = new THREE.Mesh(textGeo, textMat);
+  ring.rotation.x = Math.PI / 2;
+  ring.position.z = 0.16;
+  coinMesh.add(ring);
+  
+  // Звёздочка в центре
+  const starGeo = new THREE.OctahedronGeometry(0.15);
+  const starMat = new THREE.MeshStandardMaterial({
+    color: 0xffdd44,
+    metalness: 0.8,
+    roughness: 0.2,
+    emissive: 0xff8800,
+    emissiveIntensity: 0.2,
+  });
+  const star = new THREE.Mesh(starGeo, starMat);
+  star.position.z = 0.17;
+  star.scale.set(1, 1, 0.3);
+  coinMesh.add(star);
+  
+  // Анимация вращения
+  let mouseDown = false;
+  let targetScale = 1;
+  
+  function animate() {
+    requestAnimationFrame(animate);
+    
+    // Вращение
+    coinMesh.rotation.y += 0.01;
+    coinMesh.rotation.x = Math.PI / 6 + Math.sin(Date.now() * 0.001) * 0.02;
+    
+    // Анимация нажатия
+    const currentScale = coinMesh.scale.x;
+    coinMesh.scale.set(
+      currentScale + (targetScale - currentScale) * 0.1,
+      currentScale + (targetScale - currentScale) * 0.1,
+      currentScale + (targetScale - currentScale) * 0.1
+    );
+    
+    renderer.render(scene, camera);
+  }
+  animate();
+  
+  // Клик по монетке
+  container.addEventListener('click', function(e) {
+    targetScale = 0.7;
+    setTimeout(() => { targetScale = 1; }, 100);
+    
+    // Вызываем обычный обработчик тапа
+    if (typeof handleTap === 'function') {
+      handleTap(e);
+    }
+  });
+  
+  // Обновляем размер при изменении окна
+  window.addEventListener('resize', function() {
+    const rect = container.getBoundingClientRect();
+    const size = Math.min(rect.width, rect.height, 150);
+    renderer.setSize(size, size);
+  });
+}
+
+// Запускаем 3D монетку после загрузки страницы
+setTimeout(init3DCoin, 100);
   let score = 0;
   let energy = 100;
   let tapPower = 1;
