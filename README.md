@@ -289,12 +289,11 @@ function renderSkinShop() {
    function saveGame() {
   const data = {
    score, energy, tapPower, level, ownedSkins: ownedSkins,
-   ActiveSkin: ActiveSkin,
-   Leaderboard: Leaderboard 
+   activeSkin: activeSkin,
+   leaderboard: leaderboard 
 };
   localStorage.setItem('tapGameData',JSON.stringify(data));
 }
-    const data = { score, energy, tapPower, level };
     localStorage.setItem('tapGameData', JSON.stringify(data));
   }
 
