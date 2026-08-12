@@ -496,35 +496,59 @@
   }
 
   // Кнопка сохранить в таблицу
-  document.getElementById('saveScoreBtn').addEventListener('click', function() {
-    var currentScore = Math.floor(score);
-    if (currentScore === 0) {
-      alert('Сначала набери монеты!');
+  document.getElementById('saveScoreBtn').addE
+  // Кнопка сохранить в таблицу (1 раз в день)
+document.getElementById('saveScoreBtn').addEventListener('click', function() {
+  var currentScore = Math.floor(score);
+  
+  // Проверяем, сохранял ли уже сегодня
+  var lastSaveDate = localStorage.getItem('lastLeaderboardSave');
+  var today = new Date().toDateString();
+  
+  if (lastSaveDate === today) {
+    alert('⏳ Ты уже сохранял результат сегодня! Возвращайся завтра.');
+    return;
+  }
+  
+  if (currentScore === 0) {
+    alert('Сначала набери монеты!');
+    return;
+  }
+  
+  // Проверяем, есть ли уже запись для этого игрока
+  var existing = -1;
+  for (var i = 0; i < leaderboard.length; i++) {
+    if (leaderboard[i].name === playerName) {
+      existing = i;
+      break;
+    }
+  }
+  
+  if (existing !== -1) {
+    // Если запись есть — обновляем только если новый счёт больше
+    if (currentScore > leaderboard[existing].score) {
+      leaderboard[existing].score = currentScore;
+    } else {
+      alert('У тебя уже есть рекорд: ' + formatNumber(leaderboard[existing].score) + ' монет. Новый счёт ' + formatNumber(currentScore) + ' — не побит.');
       return;
     }
-    var existing = -1;
-    for (var i = 0; i < leaderboard.length; i++) {
-      if (leaderboard[i].name === playerName) {
-        existing = i;
-        break;
-      }
-    }
-    if (existing !== -1) {
-      if (currentScore > leaderboard[existing].score) {
-        leaderboard[existing].score = currentScore;
-      } else {
-        alert('У тебя уже есть рекорд: ' + formatNumber(leaderboard[existing].score) + ' монет. Новый счёт ' + formatNumber(currentScore) + ' — не побит.');
-        return;
-      }
-    } else {
-      leaderboard.push({ name: playerName, score: currentScore });
-    }
-    leaderboard.sort(function(a, b) { return b.score - a.score; });
-    if (leaderboard.length > 10) leaderboard = leaderboard.slice(0, 10);
-    saveLeaderboard();
-    saveGame();
-    renderLeaderboard();
-    alert('✅ Результат сохранён в таблицу лидеров!');
+  } else {
+    // Если записи нет — добавляем новую
+    leaderboard.push({ name: playerName, score: currentScore });
+  }
+  
+  // Сортируем и оставляем топ-10
+  leaderboard.sort(function(a, b) { return b.score - a.score; });
+  if (leaderboard.length > 10) leaderboard = leaderboard.slice(0, 10);
+  
+  // Сохраняем дату последнего сохранения
+  localStorage.setItem('lastLeaderboardSave', today);
+  
+  saveLeaderboard();
+  saveGame();
+  renderLeaderboard();
+  alert('✅ Результат сохранён в таблицу лидеров! Возвращайся завтра за новым рекордом!');
+});
   });
 
   // ==================== АВТОСОХРАНЕНИЕ ====================
