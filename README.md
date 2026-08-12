@@ -361,10 +361,14 @@ const SKINS = [
   function updateCoinSkin() {
   const skin = SKINS.find(s => s.id === activeSkin);
   if (skin) {
-    // Меняем эмодзи (для совместимости)
+    // Меняем эмодзи (скрытая монетка)
     coin.textContent = skin.emoji;
     // Меняем цвет 3D-монетки
-    update3DCoinColor(skin.color);
+    if (window.coinMaterial && skin.color !== undefined) {
+      window.coinMaterial.color.setHex(skin.color);
+      window.coinMaterial.emissive.setHex(skin.color);
+      window.coinMaterial.emissiveIntensity = 0.15;
+    }
   }
 }
   function renderSkinShop() {
