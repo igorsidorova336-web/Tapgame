@@ -1,4 +1,3 @@
- html>
 <html>
 <head>
   <meta charset="UTF-8">
@@ -25,7 +24,7 @@
       text-align: center;
       box-shadow: 0 20px 40px rgba(0,0,0,0.6);
     }
-    h1 {
+   h1 {
       font-size: 22px;
       opacity: 0.7;
       margin-bottom: 5px;
