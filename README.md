@@ -357,8 +357,7 @@ const SKINS = [
   { id: 'legend_cosmic', emoji: '🌌', name: 'Космическая', price: 5000000, color: 0x4a00ff },
   { id: 'legend_god', emoji: '⚡', name: 'Божественная', price: 10000000, color: 0xffaa00 },
 ];
-
-  function updateCoinSkin() {
+function updateCoinSkin() {
   const skin = SKINS.find(s => s.id === activeSkin);
   if (skin) {
     // Меняем эмодзи (скрытая монетка)
