@@ -241,6 +241,103 @@
 
   // Сохраняем при закрытии страницы
   window.addEventListener('beforeunload', saveGame);
+  // ---------- ЕЖЕДНЕВНЫЙ БОНУС ----------
+const bonusBtn = document.getElementById('bonusBtn');
+const bonusTimer = document.getElementById('bonusTimer');
+
+// Загружаем данные о бонусе
+let lastBonusDate = localStorage.getItem('lastBonusDate') || null;
+let bonusStreak = parseInt(localStorage.getItem('bonusStreak')) || 0;
+
+// Проверяем, можно ли забрать бонус
+function canClaimBonus() {
+    if (!lastBonusDate) return true;
+    const last = new Date(parseInt(lastBonusDate));
+    const now = new Date();
+    const diff = now - last;
+    const hoursPassed = diff / (1000 * 60 * 60);
+    return hoursPassed >= 24;
+}
+
+// Считаем бонусные монеты
+function getBonusAmount() {
+    return 50 + bonusStreak * 30; // 50, 80, 110, 140...
+}
+
+// Обновляем таймер до следующего бонуса
+function updateBonusTimer() {
+    if (!lastBonusDate) {
+        bonusTimer.textContent = 'Готово!';
+        return;
+    }
+    const last = new Date(parseInt(lastBonusDate));
+    const next = new Date(last.getTime() + 24 * 60 * 60 * 1000);
+    const now = new Date();
+    const diff = next - now;
+    
+    if (diff <= 0) {
+        bonusTimer.textContent = '🎯 Готово!';
+        return;
+    }
+    
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+    bonusTimer.textContent = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
+// Забрать бонус
+function claimBonus() {
+    if (!canClaimBonus()) {
+        alert('⏳ Бонус ещё не готов! Подожди 24 часа.');
+        return;
+    }
+    
+    const bonus = getBonusAmount();
+    const streak = bonusStreak + 1;
+    
+    score += bonus;
+    bonusStreak = streak;
+    lastBonusDate = Date.now().toString();
+    
+    // Сохраняем
+    localStorage.setItem('lastBonusDate', lastBonusDate);
+    localStorage.setItem('bonusStreak', bonusStreak.toString());
+    
+    // Красивое уведомление
+    alert(`🎉 День ${streak} подряд! Ты получил ${bonus} монет!`);
+    
+    // Анимация кнопки
+    bonusBtn.style.transform = 'scale(0.9)';
+    setTimeout(() => bonusBtn.style.transform = 'scale(1)', 150);
+    
+    updateUI();
+    updateBonusUI();
+}
+
+// Обновляем интерфейс бонуса
+function updateBonusUI() {
+    if (canClaimBonus()) {
+        bonusBtn.textContent = '🎁 Забрать бонус';
+        bonusBtn.style.background = 'linear-gradient(135deg, #f7971e, #ffd200)';
+        bonusBtn.disabled = false;
+    } else {
+        bonusBtn.textContent = '⏳ Бонус недоступен';
+        bonusBtn.style.background = '#2a2a40';
+        bonusBtn.style.color = '#666';
+        bonusBtn.disabled = true;
+    }
+    updateBonusTimer();
+}
+
+// Запускаем обновление таймера каждую секунду
+setInterval(updateBonusTimer, 1000);
+
+// Привязываем кнопку
+bonusBtn.addEventListener('click', claimBonus);
+
+// Загружаем состояние при старте
+updateBonusUI();
 </script>
 </body>
 </html>
