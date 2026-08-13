@@ -767,4 +767,23 @@
     }
     
     leaderboard.sort(function(a, b) { return b.score - a.score; });
-    if (leaderboard.length > 10
+    if (leaderboard.length > 10) leaderboard = leaderboard.slice(0, 10);
+    
+    localStorage.setItem('lastLeaderboardSave', today);
+    
+    saveLeaderboard();
+    saveGame();
+    renderLeaderboard();
+    alert('✅ Результат сохранён в таблицу лидеров! Возвращайся завтра за новым рекордом!');
+  });
+
+  // ==================== АВТОСОХРАНЕНИЕ ====================
+  setInterval(saveGame, 5000);
+  window.addEventListener('beforeunload', saveGame);
+
+  // ==================== СТАРТ ====================
+  setTimeout(init3DCoin, 100);
+  loadGame();
+</script>
+</body>
+</html>
