@@ -138,7 +138,7 @@
 </head>
 <body>
 <div class="app" id="app">
-  <h1>💰 КЛИКЕР</h1>
+  <h1>💰 Умар коин</h1>
   <div style="font-size:13px;opacity:0.5;margin-bottom:5px;">👥 Онлайн: <span id="onlineCount">0</span> игроков</div>
   <div class="score" id="score">0</div>
   
