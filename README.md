@@ -85,7 +85,6 @@
     button:active { transform: scale(0.95); }
     button:disabled { opacity: 0.4; transform: none; }
     .info { font-size: 11px; opacity: 0.3; margin-top: 15px; }
-
     .skin-item {
       width: 56px;
       height: 66px;
@@ -111,7 +110,6 @@
     .skin-item.vip { border-color: #ff6b6b; background: #1a0a0a; }
     .skin-item.legendary { border-color: #ffd700; background: #1a1500; box-shadow: 0 0 20px rgba(255,215,0,0.15); }
     .skin-item.legendary .skin-price { color: #ffd700; font-weight: bold; }
-
     .leaderboard-entry {
       display: flex;
       justify-content: space-between;
@@ -201,7 +199,52 @@
     </div>
     <input type="file" id="bgFileInput" accept="image/*" style="display:none;">
   </div>
+<!-- ЭКОНОМИКА -->
+<div style="margin:15px 0;background:#12121f;border-radius:16px;padding:12px;">
+  <div style="font-size:14px;font-weight:bold;margin-bottom:8px;">💰 Экономика</div>
+  
+  <!-- Инвестиции -->
+  <div style="background:#1a1a2e;border-radius:12px;padding:10px;margin-bottom:8px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div style="font-size:13px;font-weight:bold;">📈 Инвестиции</div>
+        <div style="font-size:11px;opacity:0.6;">Доход: <span id="investIncome">0</span> 🪙/мин</div>
+      </div>
+      <button id="investBtn" style="width:auto;padding:6px 14px;font-size:12px;background:#4caf50;margin-top:0;">
+        Вложить (1000🪙)
+      </button>
+    </div>
+    <div style="font-size:11px;opacity:0.4;">Вложено: <span id="investAmount">0</span> 🪙</div>
+  </div>
 
+  <!-- Рулетка -->
+  <div style="background:#1a1a2e;border-radius:12px;padding:10px;margin-bottom:8px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div style="font-size:13px;font-weight:bold;">🎰 Рулетка</div>
+        <div style="font-size:11px;opacity:0.6;">Шанс x2 или проигрыш</div>
+      </div>
+      <button id="rouletteBtn" style="width:auto;padding:6px 14px;font-size:12px;background:#ff6b6b;margin-top:0;">
+        Крутить (100🪙)
+      </button>
+    </div>
+    <div style="font-size:11px;opacity:0.4;" id="rouletteResult">Нажми "Крутить"</div>
+  </div>
+
+  <!-- Аукцион скинов -->
+  <div style="background:#1a1a2e;border-radius:12px;padding:10px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div style="font-size:13px;font-weight:bold;">🏷️ Аукцион скинов</div>
+        <div style="font-size:11px;opacity:0.6;">Торгуй скинами с другими</div>
+      </div>
+      <button id="auctionBtn" style="width:auto;padding:6px 14px;font-size:12px;background:#f5c842;margin-top:0;">
+        Торговать
+      </button>
+    </div>
+    <div style="font-size:11px;opacity:0.4;" id="auctionStatus">Сейчас торгуется: нет</div>
+  </div>
+</div>
   <!-- ТАБЛИЦА ЛИДЕРОВ -->
   <div style="margin:15px 0;background:#12121f;border-radius:16px;padding:12px;">
     <div style="font-size:14px;font-weight:bold;margin-bottom:10px;">🏆 Таблица лидеров</div>
@@ -217,6 +260,134 @@
 
 <script>
   // ==================== ПЕРЕМЕННЫЕ ====================
+  // ==================== ЭКОНОМИКА ====================
+
+// ----- ИНВЕСТИЦИИ -----
+let invested = parseInt(localStorage.getItem('invested')) || 0;
+let investIncome = 0;
+
+function updateInvestUI() {
+  document.getElementById('investAmount').textContent = invested;
+  document.getElementById('investIncome').textContent = investIncome;
+  document.getElementById('investBtn').textContent = `Вложить (${1000 + invested * 0.5}🪙)`;
+}
+
+function buyInvestment() {
+  var price = Math.floor(1000 + invested * 0.5);
+  if (score < price) {
+    alert('❌ Не хватает монет! Нужно ' + formatNumber(price));
+    return;
+  }
+  score -= price;
+  invested += price;
+  investIncome = Math.floor(invested * 0.02); // 2% дохода в минуту
+  localStorage.setItem('invested', invested);
+  updateUI();
+  updateInvestUI();
+  saveGame();
+}
+
+// Пассивный доход от инвестиций (каждую минуту)
+setInterval(function() {
+  if (investIncome > 0) {
+    score += investIncome;
+    updateUI();
+  }
+}, 60000);
+
+document.getElementById('investBtn').addEventListener('click', buyInvestment);
+
+// ----- РУЛЕТКА -----
+let rouletteHistory = [];
+
+function playRoulette() {
+  var bet = 100;
+  if (score < bet) {
+    alert('❌ Не хватает монет! Нужно 100 🪙');
+    return;
+  }
+  score -= bet;
+  
+  var win = Math.random() < 0.45; // 45% шанс на победу
+  if (win) {
+    var winAmount = bet * 2;
+    score += winAmount;
+    rouletteHistory.push('🏆 +' + winAmount);
+    document.getElementById('rouletteResult').textContent = '🎉 Выиграл! +' + winAmount + ' 🪙';
+    document.getElementById('rouletteResult').style.color = '#4caf50';
+  } else {
+    rouletteHistory.push('💔 -' + bet);
+    document.getElementById('rouletteResult').textContent = '💔 Проиграл! -' + bet + ' 🪙';
+    document.getElementById('rouletteResult').style.color = '#ff6b6b';
+  }
+  
+  if (rouletteHistory.length > 10) rouletteHistory.shift();
+  updateUI();
+  saveGame();
+}
+
+document.getElementById('rouletteBtn').addEventListener('click', playRoulette);
+
+// ----- АУКЦИОН СКИНОВ -----
+let auctionItems = [
+  { id: 'neon', name: 'Неоновая', price: 30000 },
+  { id: 'crystal', name: 'Хрустальная', price: 70000 },
+  { id: 'legend_gold', name: 'Королевская', price: 800000 },
+];
+let auctionActive = false;
+
+function startAuction() {
+  if (auctionActive) {
+    alert('⏳ Аукцион уже идёт!');
+    return;
+  }
+  
+  // Выбираем случайный скин из доступных
+  var available = auctionItems.filter(item => !ownedSkins.includes(item.id));
+  if (available.length === 0) {
+    document.getElementById('auctionStatus').textContent = 'Все скины уже твои! 🎉';
+    return;
+  }
+  
+  var item = available[Math.floor(Math.random() * available.length)];
+  var currentPrice = Math.floor(item.price * (0.5 + Math.random() * 0.5)); // 50-100% от цены
+  
+  auctionActive = true;
+  document.getElementById('auctionStatus').textContent = '🏷️ ' + item.name + ' — ' + formatNumber(currentPrice) + ' 🪙';
+  document.getElementById('auctionBtn').textContent = 'Купить за ' + formatNumber(currentPrice) + '🪙';
+  
+  // Обновляем обработчик кнопки
+  document.getElementById('auctionBtn').onclick = function() {
+    if (!auctionActive) return;
+    if (score < currentPrice) {
+      alert('❌ Не хватает монет!');
+      return;
+    }
+    score -= currentPrice;
+    ownedSkins.push(item.id);
+    localStorage.setItem('ownedSkins', JSON.stringify(ownedSkins));
+    activeSkin = item.id;
+    localStorage.setItem('activeSkin', activeSkin);
+    updateCoinSkin();
+    renderSkinShop();
+    updateUI();
+    saveGame();
+    
+    document.getElementById('auctionStatus').textContent = '🎉 Куплено! ' + item.name;
+    document.getElementById('auctionBtn').textContent = 'Торговать';
+    auctionActive = false;
+    setTimeout(() => {
+      document.getElementById('auctionStatus').textContent = 'Сейчас торгуется: нет';
+    }, 3000);
+    
+    alert('🎉 Поздравляю! Ты купил скин "' + item.name + '" на аукционе!');
+  };
+}
+
+document.getElementById('auctionBtn').addEventListener('click', startAuction);
+
+// Инициализация
+updateInvestUI();
   let score = 0;
   let energy = 100;
   let tapPower = 1;
