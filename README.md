@@ -83,7 +83,6 @@
     button:active { transform: scale(0.95); }
     button:disabled { opacity: 0.4; transform: none; }
     .info { font-size: 11px; opacity: 0.3; margin-top: 15px; }
-
     .skin-item {
       width: 56px;
       height: 66px;
@@ -109,7 +108,6 @@
     .skin-item.vip { border-color: #ff6b6b; background: #1a0a0a; }
     .skin-item.legendary { border-color: #ffd700; background: #1a1500; box-shadow: 0 0 20px rgba(255,215,0,0.15); }
     .skin-item.legendary .skin-price { color: #ffd700; font-weight: bold; }
-
     .leaderboard-entry {
       display: flex;
       justify-content: space-between;
@@ -159,7 +157,7 @@
 </head>
 <body>
 <div class="app" id="app">
-  <h1>💰 КЛИКЕР</h1>
+  <h1>💰 Умар коин</h1>
   <div style="font-size:13px;opacity:0.5;margin-bottom:5px;">👥 Онлайн: <span id="onlineCount">0</span> игроков</div>
   <div class="score" id="score">0</div>
 
@@ -204,7 +202,6 @@
   <!-- ЭКОНОМИКА -->
   <div style="margin:15px 0;background:#12121f;border-radius:16px;padding:12px;">
     <div style="font-size:14px;font-weight:bold;margin-bottom:8px;">💰 Экономика</div>
-
     <div class="economy-box">
       <div class="row">
         <div><div class="title">📈 Инвестиции</div><div class="sub">Доход: <span id="investIncome">0</span> 🪙/мин</div></div>
@@ -212,7 +209,6 @@
       </div>
       <div class="mini">Вложено: <span id="investAmount">0</span> 🪙</div>
     </div>
-
     <div class="economy-box">
       <div class="row">
         <div><div class="title">🎰 Рулетка</div><div class="sub">Шанс x2 или проигрыш</div></div>
@@ -220,7 +216,6 @@
       </div>
       <div class="mini" id="rouletteResult">Нажми "Крутить"</div>
     </div>
-
     <div class="economy-box">
       <div class="row">
         <div><div class="title">🏷️ Аукцион скинов</div><div class="sub">Торгуй скинами</div></div>
@@ -228,7 +223,6 @@
       </div>
       <div class="mini" id="auctionStatus">Сейчас торгуется: нет</div>
     </div>
-
     <div class="economy-box" style="margin-bottom:0;">
       <div class="row">
         <div><div class="title">💤 Офлайн-доход</div><div class="sub">Заработано: <span id="offlineEarned">0</span> 🪙</div></div>
