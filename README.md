@@ -158,6 +158,11 @@
 <body>
 <div class="app" id="app">
   <h1>💰 Умар коин</h1>
+  <!-- ВКЛАДКИ -->
+<div style="display:flex;gap:8px;margin:10px 0;background:#12121f;border-radius:16px;padding:6px;">
+  <button id="tabGame" style="flex:1;padding:8px;font-size:13px;background:#f5c842;color:#0f0f1a;margin:0;border-radius:12px;">🎮 Игра</button>
+  <button id="tabSkins" style="flex:1;padding:8px;font-size:13px;background:transparent;color:#888;margin:0;border-radius:12px;">🎨 Скины</button>
+</div>
   <div style="font-size:13px;opacity:0.5;margin-bottom:5px;">👥 Онлайн: <span id="onlineCount">0</span> игроков</div>
   <div class="score" id="score">0</div>
 
@@ -939,6 +944,24 @@ window.addEventListener('beforeunload', saveGame);
 // ==================== СТАРТ ====================
 setTimeout(init3DCoin, 100);
 loadGame();
+  // ==================== ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК ====================
+document.getElementById('tabGame').addEventListener('click', function() {
+  document.getElementById('gameTab').style.display = 'block';
+  document.getElementById('skinsTab').style.display = 'none';
+  this.style.background = '#f5c842';
+  this.style.color = '#0f0f1a';
+  document.getElementById('tabSkins').style.background = 'transparent';
+  document.getElementById('tabSkins').style.color = '#888';
+});
+
+document.getElementById('tabSkins').addEventListener('click', function() {
+  document.getElementById('gameTab').style.display = 'none';
+  document.getElementById('skinsTab').style.display = 'block';
+  this.style.background = '#f5c842';
+  this.style.color = '#0f0f1a';
+  document.getElementById('tabGame').style.background = 'transparent';
+  document.getElementById('tabGame').style.color = '#888';
+});
 </script>
 </body>
 </html>
