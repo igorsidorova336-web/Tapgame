@@ -149,127 +149,156 @@
       font-size: 12px;
       margin-top: 0;
     }
-    .btn-green { background: #4caf50; }
-    .btn-red { background: #ff6b6b; }
+    .btn-green { background: #4caf50; color: white; }
+    .btn-red { background: #ff6b6b; color: white; }
     .btn-gold { background: #ffd700; color: #000; }
     .btn-gold:disabled { background: #2a2a40; color: #666; }
+    .tab-btn {
+      flex: 1;
+      padding: 8px;
+      font-size: 13px;
+      margin: 0;
+      border-radius: 12px;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .tab-btn.active {
+      background: #f5c842;
+      color: #0f0f1a;
+    }
+    .tab-btn.inactive {
+      background: #2a2a40;
+      color: #888;
+    }
   </style>
 </head>
 <body>
 <div class="app" id="app">
-  <h1>💰 Умар коин</h1>
+  <h1>💰 КЛИКЕР</h1>
+
   <!-- ВКЛАДКИ -->
-<div style="display:flex;gap:8px;margin:10px 0;background:#12121f;border-radius:16px;padding:6px;">
-  <button id="tabGame" style="flex:1;padding:8px;font-size:13px;background:#f5c842;color:#0f0f1a;margin:0;border-radius:12px;">🎮 Игра</button>
-  <button id="tabSkins" style="flex:1;padding:8px;font-size:13px;background:transparent;color:#888;margin:0;border-radius:12px;">🎨 Скины</button>
-</div>
-  <div style="font-size:13px;opacity:0.5;margin-bottom:5px;">👥 Онлайн: <span id="onlineCount">0</span> игроков</div>
-  <div class="score" id="score">0</div>
-
-  <div id="coin3d"></div>
-  <div class="coin" id="coin">🪙</div>
-
-  <div class="energy">⚡ Энергия: <span id="energy">100</span>%</div>
-  <div class="stats">
-    <div>👆 Сила: <span id="tapPower">1</span></div>
-    <div>📈 Уровень: <span id="level">1</span></div>
+  <div style="display:flex;gap:8px;margin:10px 0;background:#12121f;border-radius:16px;padding:6px;">
+    <button class="tab-btn active" id="tabGame" onclick="switchToGame()">🎮 Игра</button>
+    <button class="tab-btn inactive" id="tabSkins" onclick="switchToSkins()">🎨 Скины</button>
   </div>
-  <button id="upgradeBtn">🔧 Улучшить тап (стоит 50)</button>
 
-  <!-- АВТОКЛИКЕР -->
-  <div style="margin:15px 0;background:#12121f;border-radius:16px;padding:12px;">
-    <div class="row">
-      <div>
-        <div style="font-size:14px;font-weight:bold;">🤖 Автокликер</div>
-        <div style="font-size:12px;opacity:0.6;">Уровень: <span id="autoLevel">0</span> (+<span id="autoIncome">0</span>/сек)</div>
-      </div>
-      <button id="autoBtn" class="btn-small" style="background:#4fc3f7;">Купить (<span id="autoPrice">1000</span>🪙)</button>
+  <!-- ИГРОВАЯ ВКЛАДКА -->
+  <div id="gameTab">
+    <div style="font-size:13px;opacity:0.5;margin-bottom:5px;">👥 Онлайн: <span id="onlineCount">0</span> игроков</div>
+    <div class="score" id="score">0</div>
+    <div id="coin3d"></div>
+    <div class="coin" id="coin">🪙</div>
+    <div class="energy">⚡ Энергия: <span id="energy">100</span>%</div>
+    <div class="stats">
+      <div>👆 Сила: <span id="tapPower">1</span></div>
+      <div>📈 Уровень: <span id="level">1</span></div>
     </div>
-  </div>
-
-  <!-- ЕЖЕДНЕВНЫЙ БОНУС -->
-  <div style="margin:15px 0;background:#12121f;border-radius:16px;padding:12px;">
-    <div style="font-size:14px;font-weight:bold;margin-bottom:8px;">🎁 Ежедневный бонус</div>
-    <button id="bonusBtn" style="background:linear-gradient(135deg, #f7971e, #ffd200); padding:12px 16px; border-radius:50px; border:none; font-weight:700; font-size:15px; width:100%; color:#0f0f1a; margin-top:0;">
-      🎁 Забрать бонус
-    </button>
-    <div style="font-size:12px; opacity:0.5; margin-top:5px;">
-      Следующий бонус через: <span id="bonusTimer">--:--:--</span>
-    </div>
-  </div>
-
-  <!-- МАГАЗИН СКИНОВ -->
-  <div style="margin:15px 0;background:#12121f;border-radius:16px;padding:12px;">
-    <div style="font-size:14px;font-weight:bold;margin-bottom:10px;">🎨 Скины</div>
-    <div id="skinShop" style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;"></div>
-  </div>
-
-  <!-- ЭКОНОМИКА -->
-  <div style="margin:15px 0;background:#12121f;border-radius:16px;padding:12px;">
-    <div style="font-size:14px;font-weight:bold;margin-bottom:8px;">💰 Экономика</div>
-    <div class="economy-box">
+    <button id="upgradeBtn">🔧 Улучшить тап (стоит 50)</button>
+    <!-- АВТОКЛИКЕР -->
+    <div style="margin:15px 0;background:#12121f;border-radius:16px;padding:12px;">
       <div class="row">
-        <div><div class="title">📈 Инвестиции</div><div class="sub">Доход: <span id="investIncome">0</span> 🪙/мин</div></div>
-        <button id="investBtn" class="btn-small btn-green">Вложить (1000🪙)</button>
+        <div>
+          <div style="font-size:14px;font-weight:bold;">🤖 Автокликер</div>
+          <div style="font-size:12px;opacity:0.6;">Уровень: <span id="autoLevel">0</span> (+<span id="autoIncome">0</span>/сек)</div>
+        </div>
+        <button id="autoBtn" class="btn-small" style="background:#4fc3f7;color:#000;">Купить (<span id="autoPrice">1000</span>🪙)</button>
       </div>
-      <div class="mini">Вложено: <span id="investAmount">0</span> 🪙</div>
     </div>
-    <div class="economy-box">
-      <div class="row">
-        <div><div class="title">🎰 Рулетка</div><div class="sub">Шанс x2 или проигрыш</div></div>
-        <button id="rouletteBtn" class="btn-small btn-red">Крутить (100🪙)</button>
+    <!-- ЕЖЕДНЕВНЫЙ БОНУС -->
+    <div style="margin:15px 0;background:#12121f;border-radius:16px;padding:12px;">
+      <div style="font-size:14px;font-weight:bold;margin-bottom:8px;">🎁 Ежедневный бонус</div>
+      <button id="bonusBtn" style="background:linear-gradient(135deg, #f7971e, #ffd200);padding:12px 16px;border-radius:50px;border:none;font-weight:700;font-size:15px;width:100%;color:#0f0f1a;margin-top:0;">🎁 Забрать бонус</button>
+      <div style="font-size:12px;opacity:0.5;margin-top:5px;">Следующий бонус через: <span id="bonusTimer">--:--:--</span></div>
+    </div>
+    <!-- ЭКОНОМИКА -->
+    <div style="margin:15px 0;background:#12121f;border-radius:16px;padding:12px;">
+      <div style="font-size:14px;font-weight:bold;margin-bottom:8px;">💰 Экономика</div>
+      <div class="economy-box">
+        <div class="row">
+          <div><div class="title">📈 Инвестиции</div><div class="sub">Доход: <span id="investIncome">0</span> 🪙/мин</div></div>
+          <button id="investBtn" class="btn-small btn-green">Вложить (1000🪙)</button>
+        </div>
+        <div class="mini">Вложено: <span id="investAmount">0</span> 🪙</div>
       </div>
-      <div class="mini" id="rouletteResult">Нажми "Крутить"</div>
-    </div>
-    <div class="economy-box">
-      <div class="row">
-        <div><div class="title">🏷️ Аукцион скинов</div><div class="sub">Торгуй скинами</div></div>
-        <button id="auctionBtn" class="btn-small btn-gold">Торговать</button>
+      <div class="economy-box">
+        <div class="row">
+          <div><div class="title">🎰 Рулетка</div><div class="sub">Шанс x2 или проигрыш</div></div>
+          <button id="rouletteBtn" class="btn-small btn-red">Крутить (100🪙)</button>
+        </div>
+        <div class="mini" id="rouletteResult">Нажми "Крутить"</div>
       </div>
-      <div class="mini" id="auctionStatus">Сейчас торгуется: нет</div>
-    </div>
-    <div class="economy-box" style="margin-bottom:0;">
-      <div class="row">
-        <div><div class="title">💤 Офлайн-доход</div><div class="sub">Заработано: <span id="offlineEarned">0</span> 🪙</div></div>
-        <button id="collectOfflineBtn" class="btn-small btn-gold">Забрать</button>
+      <div class="economy-box">
+        <div class="row">
+          <div><div class="title">🏷️ Аукцион скинов</div><div class="sub">Торгуй скинами</div></div>
+          <button id="auctionBtn" class="btn-small btn-gold">Торговать</button>
+        </div>
+        <div class="mini" id="auctionStatus">Сейчас торгуется: нет</div>
       </div>
-      <div class="mini">Ты отсутствовал: <span id="offlineTime">0</span> мин</div>
+      <div class="economy-box" style="margin-bottom:0;">
+        <div class="row">
+          <div><div class="title">💤 Офлайн-доход</div><div class="sub">Заработано: <span id="offlineEarned">0</span> 🪙</div></div>
+          <button id="collectOfflineBtn" class="btn-small btn-gold">Забрать</button>
+        </div>
+        <div class="mini">Ты отсутствовал: <span id="offlineTime">0</span> мин</div>
+      </div>
     </div>
+    <!-- ФОН -->
+    <div style="margin:15px 0;background:#12121f;border-radius:16px;padding:12px;">
+      <div style="font-size:14px;font-weight:bold;margin-bottom:8px;">🎨 Фон</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:8px;">
+        <button onclick="setBackground('#0f0f1a')" style="width:30px;height:30px;border-radius:50%;background:#0f0f1a;border:2px solid #fff;padding:0;margin:0;"></button>
+        <button onclick="setBackground('#1a1a2e')" style="width:30px;height:30px;border-radius:50%;background:#1a1a2e;border:2px solid #fff;padding:0;margin:0;"></button>
+        <button onclick="setBackground('#16213e')" style="width:30px;height:30px;border-radius:50%;background:#16213e;border:2px solid #fff;padding:0;margin:0;"></button>
+        <button onclick="setBackground('#0f3460')" style="width:30px;height:30px;border-radius:50%;background:#0f3460;border:2px solid #fff;padding:0;margin:0;"></button>
+        <button onclick="setBackground('#2d132c')" style="width:30px;height:30px;border-radius:50%;background:#2d132c;border:2px solid #fff;padding:0;margin:0;"></button>
+        <button onclick="setBackground('#1b4332')" style="width:30px;height:30px;border-radius:50%;background:#1b4332;border:2px solid #fff;padding:0;margin:0;"></button>
+        <button onclick="setBackground('#4a1942')" style="width:30px;height:30px;border-radius:50%;background:#4a1942;border:2px solid #fff;padding:0;margin:0;"></button>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <button id="uploadBgBtn" style="width:auto;padding:8px 16px;font-size:12px;background:#4fc3f7;margin-top:0;border:none;border-radius:30px;font-weight:bold;color:#000;">📁 Из галереи</button>
+        <button onclick="resetBackground()" style="width:auto;padding:8px 16px;font-size:12px;background:#ff6b6b;margin-top:0;border:none;border-radius:30px;font-weight:bold;color:white;">🔄 Сбросить</button>
+      </div>
+      <input type="file" id="bgFileInput" accept="image/*" style="display:none;">
+    </div>
+    <!-- ТАБЛИЦА ЛИДЕРОВ -->
+    <div style="margin:15px 0;background:#12121f;border-radius:16px;padding:12px;">
+      <div style="font-size:14px;font-weight:bold;margin-bottom:10px;">🏆 Таблица лидеров</div>
+      <div style="display:flex;gap:6px;margin-bottom:8px;">
+        <input id="playerNameInput" type="text" placeholder="Твоё имя" value="Игрок">
+        <button id="saveScoreBtn" style="width:auto;padding:8px 16px;font-size:13px;background:#4fc3f7;margin-top:0;border:none;border-radius:30px;font-weight:bold;color:#000;">Сохранить</button>
+      </div>
+      <div id="leaderboardList" style="text-align:left;"></div>
+    </div>
+    <div class="info">⬆️ Автосохранение каждые 5 секунд</div>
   </div>
 
-  <!-- НАСТРОЙКА ФОНА -->
-  <div style="margin:15px 0;background:#12121f;border-radius:16px;padding:12px;">
-    <div style="font-size:14px;font-weight:bold;margin-bottom:8px;">🎨 Фон</div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-bottom:8px;">
-      <button onclick="setBackground('#0f0f1a')" style="width:30px;height:30px;border-radius:50%;background:#0f0f1a;border:2px solid #fff;padding:0;margin:0;"></button>
-      <button onclick="setBackground('#1a1a2e')" style="width:30px;height:30px;border-radius:50%;background:#1a1a2e;border:2px solid #fff;padding:0;margin:0;"></button>
-      <button onclick="setBackground('#16213e')" style="width:30px;height:30px;border-radius:50%;background:#16213e;border:2px solid #fff;padding:0;margin:0;"></button>
-      <button onclick="setBackground('#0f3460')" style="width:30px;height:30px;border-radius:50%;background:#0f3460;border:2px solid #fff;padding:0;margin:0;"></button>
-      <button onclick="setBackground('#2d132c')" style="width:30px;height:30px;border-radius:50%;background:#2d132c;border:2px solid #fff;padding:0;margin:0;"></button>
-      <button onclick="setBackground('#1b4332')" style="width:30px;height:30px;border-radius:50%;background:#1b4332;border:2px solid #fff;padding:0;margin:0;"></button>
-      <button onclick="setBackground('#4a1942')" style="width:30px;height:30px;border-radius:50%;background:#4a1942;border:2px solid #fff;padding:0;margin:0;"></button>
+  <!-- ВКЛАДКА СКИНОВ -->
+  <div id="skinsTab" style="display:none;">
+    <div style="margin:15px 0;background:#12121f;border-radius:16px;padding:12px;">
+      <div style="font-size:14px;font-weight:bold;margin-bottom:10px;">🎨 Все скины</div>
+      <div id="skinShop" style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;"></div>
     </div>
-    <div style="display:flex;gap:6px;">
-      <button id="uploadBgBtn" style="width:auto;padding:8px 16px;font-size:12px;background:#4fc3f7;margin-top:0;">📁 Из галереи</button>
-      <button onclick="resetBackground()" style="width:auto;padding:8px 16px;font-size:12px;background:#ff6b6b;margin-top:0;">🔄 Сбросить</button>
-    </div>
-    <input type="file" id="bgFileInput" accept="image/*" style="display:none;">
   </div>
-
-  <!-- ТАБЛИЦА ЛИДЕРОВ -->
-  <div style="margin:15px 0;background:#12121f;border-radius:16px;padding:12px;">
-    <div style="font-size:14px;font-weight:bold;margin-bottom:10px;">🏆 Таблица лидеров</div>
-    <div style="display:flex;gap:6px;margin-bottom:8px;">
-      <input id="playerNameInput" type="text" placeholder="Твоё имя" value="Игрок">
-      <button id="saveScoreBtn" style="width:auto;padding:8px 16px;font-size:13px;background:#4fc3f7;margin-top:0;">Сохранить</button>
-    </div>
-    <div id="leaderboardList" style="text-align:left;"></div>
-  </div>
-
-  <div class="info">⬆️ Автосохранение каждые 5 секунд</div>
 </div>
 
 <script>
+// ==================== ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК ====================
+function switchToGame() {
+  document.getElementById('gameTab').style.display = 'block';
+  document.getElementById('skinsTab').style.display = 'none';
+  document.getElementById('tabGame').className = 'tab-btn active';
+  document.getElementById('tabSkins').className = 'tab-btn inactive';
+}
+
+function switchToSkins() {
+  document.getElementById('gameTab').style.display = 'none';
+  document.getElementById('skinsTab').style.display = 'block';
+  document.getElementById('tabSkins').className = 'tab-btn active';
+  document.getElementById('tabGame').className = 'tab-btn inactive';
+}
+
 // ==================== ПЕРЕМЕННЫЕ ====================
 let score = 0;
 let energy = 100;
@@ -291,7 +320,6 @@ const autoBasePrice = 1000;
 
 let invested = parseInt(localStorage.getItem('invested')) || 0;
 let investIncome = 0;
-let rouletteHistory = [];
 
 let lastOnlineTime = localStorage.getItem('lastOnlineTime') || Date.now().toString();
 let offlineEarnings = parseInt(localStorage.getItem('offlineEarnings')) || 0;
@@ -944,24 +972,6 @@ window.addEventListener('beforeunload', saveGame);
 // ==================== СТАРТ ====================
 setTimeout(init3DCoin, 100);
 loadGame();
-  // ==================== ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК ====================
-document.getElementById('tabGame').addEventListener('click', function() {
-  document.getElementById('gameTab').style.display = 'block';
-  document.getElementById('skinsTab').style.display = 'none';
-  this.style.background = '#f5c842';
-  this.style.color = '#0f0f1a';
-  document.getElementById('tabSkins').style.background = 'transparent';
-  document.getElementById('tabSkins').style.color = '#888';
-});
-
-document.getElementById('tabSkins').addEventListener('click', function() {
-  document.getElementById('gameTab').style.display = 'none';
-  document.getElementById('skinsTab').style.display = 'block';
-  this.style.background = '#f5c842';
-  this.style.color = '#0f0f1a';
-  document.getElementById('tabGame').style.background = 'transparent';
-  document.getElementById('tabGame').style.color = '#888';
-});
 </script>
 </body>
 </html>
