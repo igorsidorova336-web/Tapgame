@@ -200,6 +200,23 @@
     <input type="file" id="bgFileInput" accept="image/*" style="display:none;">
   </div>
 <!-- ЭКОНОМИКА -->
+<!-- Офлайн-доход -->
+<div style="background:#1a1a2e;border-radius:12px;padding:10px;margin-top:8px;">
+  <div style="display:flex;justify-content:space-between;align-items:center;">
+    <div>
+      <div style="font-size:13px;font-weight:bold;">💤 Офлайн-доход</div>
+      <div style="font-size:11px;opacity:0.6;">
+        Заработано: <span id="offlineEarned">0</span> 🪙
+      </div>
+    </div>
+    <button id="collectOfflineBtn" style="width:auto;padding:6px 14px;font-size:12px;background:#ffd700;margin-top:0;color:#000;">
+      Забрать
+    </button>
+  </div>
+  <div style="font-size:10px;opacity:0.4;">
+    Ты отсутствовал: <span id="offlineTime">0</span> мин
+  </div>
+</div>
 <div style="margin:15px 0;background:#12121f;border-radius:16px;padding:12px;">
   <div style="font-size:14px;font-weight:bold;margin-bottom:8px;">💰 Экономика</div>
   
@@ -260,7 +277,109 @@
 
 <script>
   // ==================== ПЕРЕМЕННЫЕ ====================
-  // ==================== ЭКОНОМИКА ====================
+  // ==================== ОФЛАЙН-ДОХОД ====================
+let lastOnlineTime = localStorage.getItem('lastOnlineTime') || Date.now().toString();
+let offlineEarnings = parseInt(localStorage.getItem('offlineEarnings')) || 0;
+
+// Рассчитываем доход в секунду
+function getIncomePerSecond() {
+  let income = 0;
+  // Автокликер
+  if (autoLevel > 0) {
+    income += autoLevel * 0.5;
+  }
+  // Инвестиции
+  if (investIncome > 0) {
+    income += investIncome / 60; // переводим в секунду
+  }
+  return income;
+}
+
+// Рассчитываем, сколько заработано офлайн
+function calculateOfflineEarnings() {
+  const now = Date.now();
+  const last = parseInt(lastOnlineTime);
+  const diffSeconds = (now - last) / 1000;
+  
+  // Максимум 24 часа офлайн-дохода
+  const maxSeconds = 24 * 60 * 60;
+  const actualSeconds = Math.min(diffSeconds, maxSeconds);
+  
+  const incomePerSec = getIncomePerSecond();
+  const earned = incomePerSec * actualSeconds;
+  
+  return {
+    seconds: actualSeconds,
+    earned: earned,
+    incomePerSec: incomePerSec
+  };
+}
+
+// Обновляем UI офлайн-дохода
+function updateOfflineUI() {
+  const data = calculateOfflineEarnings();
+  const earned = data.earned;
+  const minutes = Math.floor(data.seconds / 60);
+  const seconds = Math.floor(data.seconds % 60);
+  
+  document.getElementById('offlineEarned').textContent = formatNumber(Math.floor(earned));
+  document.getElementById('offlineTime').textContent = minutes + ' мин ' + seconds + ' сек';
+  
+  // Если есть что забрать
+  const btn = document.getElementById('collectOfflineBtn');
+  if (earned > 1) {
+    btn.style.background = '#ffd700';
+    btn.style.color = '#000';
+    btn.textContent = '🎁 Забрать ' + formatNumber(Math.floor(earned)) + ' 🪙';
+    btn.disabled = false;
+  } else {
+    btn.style.background = '#2a2a40';
+    btn.style.color = '#666';
+    btn.textContent = 'Нет дохода';
+    btn.disabled = true;
+  }
+}
+
+// Забрать офлайн-доход
+function collectOffline() {
+  const data = calculateOfflineEarnings();
+  const earned = data.earned;
+  
+  if (earned < 1) {
+    alert('😴 Пока нет дохода. Попробуй позже!');
+    return;
+  }
+  
+  const bonus = Math.floor(earned);
+  score += bonus;
+  offlineEarnings += bonus;
+  localStorage.setItem('offlineEarnings', offlineEarnings);
+  
+  // Обновляем время последнего захода
+  const now = Date.now();
+  lastOnlineTime = now;
+  localStorage.setItem('lastOnlineTime', now);
+  
+  updateUI();
+  updateOfflineUI();
+  saveGame();
+  
+  alert('🎉 Ты заработал ' + formatNumber(bonus) + ' монет пока отсутствовал!');
+}
+
+// Кнопка "Забрать"
+document.getElementById('collectOfflineBtn').addEventListener('click', collectOffline);
+
+// Обновляем время при загрузке
+function updateLastOnlineTime() {
+  const now = Date.now();
+  lastOnlineTime = now;
+  localStorage.setItem('lastOnlineTime', now);
+}
+
+// Обновляем каждые 10 секунд
+setInterval(updateOfflineUI, 10000);
+setInterval(updateLastOnlineTime, 30000); // обновляем время каждые 30 секунд
 
 // ----- ИНВЕСТИЦИИ -----
 let invested = parseInt(localStorage.getItem('invested')) || 0;
@@ -805,6 +924,8 @@ updateInvestUI();
 
   // ==================== СОХРАНЕНИЕ ====================
   function saveGame() {
+    lastOnlineTime: lastOnlineTime,
+offlineEarnings: offlineEarnings
     var data = {
       score: score,
       energy: energy,
@@ -821,7 +942,10 @@ updateInvestUI();
   }
 
   function loadGame() {
+    if (data.lastOnlineTime) lastOnlineTime = data.lastOnlineTime;
+if (data.offlineEarnings) offlineEarnings = data.offlineEarnings;
     try {
+      
       var saved = localStorage.getItem('tapGameData');
       if (saved) {
         var data = JSON.parse(saved);
