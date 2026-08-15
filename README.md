@@ -172,6 +172,35 @@
       background: #2a2a40;
       color: #888;
     }
+    .achievement-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 10px;
+      margin-bottom: 4px;
+      border-radius: 8px;
+      border-left: 3px solid #2a2a40;
+    }
+    .achievement-item.done {
+      background: #1a2e1a;
+      border-left-color: #4caf50;
+    }
+    .achievement-item.undone {
+      background: #1a1a2e;
+      border-left-color: #2a2a40;
+    }
+    .achievement-item .left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-align: left;
+    }
+    .achievement-item .left .icon { font-size: 20px; }
+    .achievement-item .left .name { font-size: 12px; font-weight: bold; }
+    .achievement-item .left .desc { font-size: 10px; opacity: 0.5; }
+    .achievement-item .right { font-size: 11px; text-align: right; }
+    .achievement-item .right .done-text { color: #4caf50; }
+    .achievement-item .right .reward-text { color: #888; }
   </style>
 </head>
 <body>
@@ -244,6 +273,12 @@
         <div class="mini">Ты отсутствовал: <span id="offlineTime">0</span> мин</div>
       </div>
     </div>
+    <!-- ДОСТИЖЕНИЯ -->
+    <div style="margin:15px 0;background:#12121f;border-radius:16px;padding:12px;">
+      <div style="font-size:14px;font-weight:bold;margin-bottom:8px;">🏆 Достижения</div>
+      <div id="achievementsList" style="text-align:left;max-height:200px;overflow-y:auto;"></div>
+      <div style="font-size:11px;opacity:0.4;margin-top:5px;">Выполняй задания и получай награды!</div>
+    </div>
     <!-- ФОН -->
     <div style="margin:15px 0;background:#12121f;border-radius:16px;padding:12px;">
       <div style="font-size:14px;font-weight:bold;margin-bottom:8px;">🎨 Фон</div>
@@ -291,7 +326,6 @@ function switchToGame() {
   document.getElementById('tabGame').className = 'tab-btn active';
   document.getElementById('tabSkins').className = 'tab-btn inactive';
 }
-
 function switchToSkins() {
   document.getElementById('gameTab').style.display = 'none';
   document.getElementById('skinsTab').style.display = 'block';
@@ -308,21 +342,19 @@ const MAX_ENERGY = 100;
 
 let leaderboard = [];
 let playerName = 'Игрок';
-
 let ownedSkins = ['gold'];
 let activeSkin = 'gold';
-
 let lastBonusDate = localStorage.getItem('lastBonusDate') || null;
 let bonusStreak = parseInt(localStorage.getItem('bonusStreak')) || 0;
-
 let autoLevel = parseInt(localStorage.getItem('autoLevel')) || 0;
 const autoBasePrice = 1000;
-
 let invested = parseInt(localStorage.getItem('invested')) || 0;
 let investIncome = 0;
-
 let lastOnlineTime = localStorage.getItem('lastOnlineTime') || Date.now().toString();
 let offlineEarnings = parseInt(localStorage.getItem('offlineEarnings')) || 0;
+let tapCount = parseInt(localStorage.getItem('tapCount')) || 0;
+let rouletteWins = parseInt(localStorage.getItem('rouletteWins')) || 0;
+let completedAchievements = JSON.parse(localStorage.getItem('completedAchievements')) || [];
 
 const scoreEl = document.getElementById('score');
 const energyEl = document.getElementById('energy');
@@ -330,7 +362,6 @@ const tapPowerEl = document.getElementById('tapPower');
 const levelEl = document.getElementById('level');
 const coin = document.getElementById('coin');
 const upgradeBtn = document.getElementById('upgradeBtn');
-
 const bonusBtn = document.getElementById('bonusBtn');
 const bonusTimer = document.getElementById('bonusTimer');
 
@@ -351,6 +382,34 @@ const SKINS = [
   { id: 'legend_dark', emoji: '🌑', name: 'Тёмная звезда', price: 2500000, color: 0x2a0a2a },
   { id: 'legend_cosmic', emoji: '🌌', name: 'Космическая', price: 5000000, color: 0x4a00ff },
   { id: 'legend_god', emoji: '⚡', name: 'Божественная', price: 10000000, color: 0xffaa00 },
+];
+
+// ==================== ДОСТИЖЕНИЯ ====================
+const ACHIEVEMENTS = [
+  { id: 'first_tap', name: 'Первый шаг', desc: 'Сделай 100 тапов', icon: '👣', reward: 500, check: () => tapCount >= 100 },
+  { id: 'tapper_1k', name: 'Тысячник', desc: 'Сделай 1 000 тапов', icon: '👆', reward: 1000, check: () => tapCount >= 1000 },
+  { id: 'tapper_10k', name: 'Трудяга', desc: 'Сделай 10 000 тапов', icon: '💪', reward: 5000, check: () => tapCount >= 10000 },
+  { id: 'tapper_100k', name: 'Тап-мастер', desc: 'Сделай 100 000 тапов', icon: '🔥', reward: 20000, check: () => tapCount >= 100000 },
+  { id: 'tapper_1m', name: 'Легенда тапа', desc: 'Сделай 1 000 000 тапов', icon: '👑', reward: 100000, check: () => tapCount >= 1000000 },
+  { id: 'rich_10k', name: 'Богач', desc: 'Накопи 10 000 монет', icon: '💰', reward: 2000, check: () => score >= 10000 },
+  { id: 'rich_100k', name: 'Магнат', desc: 'Накопи 100 000 монет', icon: '💎', reward: 10000, check: () => score >= 100000 },
+  { id: 'rich_1m', name: 'Миллионер', desc: 'Накопи 1 000 000 монет', icon: '🏦', reward: 50000, check: () => score >= 1000000 },
+  { id: 'rich_10m', name: 'Легенда богатства', desc: 'Накопи 10 000 000 монет', icon: '🌟', reward: 200000, check: () => score >= 10000000 },
+  { id: 'rich_100m', name: 'Финансовый гений', desc: 'Накопи 100 000 000 монет', icon: '🚀', reward: 500000, check: () => score >= 100000000 },
+  { id: 'skin_collector_3', name: 'Коллекционер', desc: 'Купи 3 скина', icon: '🎨', reward: 3000, check: () => ownedSkins.length >= 3 },
+  { id: 'skin_collector_5', name: 'Ценитель искусства', desc: 'Купи 5 скинов', icon: '🖼️', reward: 8000, check: () => ownedSkins.length >= 5 },
+  { id: 'skin_collector_8', name: 'Знаток скинов', desc: 'Купи 8 скинов', icon: '🏛️', reward: 20000, check: () => ownedSkins.length >= 8 },
+  { id: 'skin_legendary', name: 'Легендарный коллекционер', desc: 'Купи легендарный скин', icon: '👑', reward: 50000, check: () => ownedSkins.some(id => ['legend_gold','legend_dark','legend_cosmic','legend_god'].includes(id)) },
+  { id: 'auto_5', name: 'Автоматизация', desc: 'Купи 5 уровень автокликера', icon: '⚙️', reward: 5000, check: () => autoLevel >= 5 },
+  { id: 'auto_10', name: 'Машина для монет', desc: 'Купи 10 уровень автокликера', icon: '🤖', reward: 15000, check: () => autoLevel >= 10 },
+  { id: 'auto_25', name: 'Кибер-фермер', desc: 'Купи 25 уровень автокликера', icon: '💻', reward: 50000, check: () => autoLevel >= 25 },
+  { id: 'invest_10k', name: 'Инвестор', desc: 'Вложи 10 000 монет', icon: '📈', reward: 3000, check: () => invested >= 10000 },
+  { id: 'invest_100k', name: 'Финансист', desc: 'Вложи 100 000 монет', icon: '🏦', reward: 15000, check: () => invested >= 100000 },
+  { id: 'invest_1m', name: 'Банкир', desc: 'Вложи 1 000 000 монет', icon: '💰', reward: 100000, check: () => invested >= 1000000 },
+  { id: 'roulette_win_5', name: 'Удачливый', desc: 'Выиграй в рулетку 5 раз', icon: '🍀', reward: 2000, check: () => rouletteWins >= 5 },
+  { id: 'roulette_win_20', name: 'Счастливчик', desc: 'Выиграй в рулетку 20 раз', icon: '🎰', reward: 10000, check: () => rouletteWins >= 20 },
+  { id: 'offline_10k', name: 'Офлайн-магнат', desc: 'Заработай 10 000 монет офлайн', icon: '💤', reward: 5000, check: () => offlineEarnings >= 10000 },
+  { id: 'offline_100k', name: 'Спящий гигант', desc: 'Заработай 100 000 монет офлайн', icon: '🌟', reward: 25000, check: () => offlineEarnings >= 100000 },
 ];
 
 // ==================== ФОН ====================
@@ -703,6 +762,8 @@ function playRoulette() {
   if (win) {
     var winAmount = bet * 2;
     score += winAmount;
+    rouletteWins += 1;
+    localStorage.setItem('rouletteWins', rouletteWins);
     document.getElementById('rouletteResult').textContent = '🎉 Выиграл! +' + winAmount + ' 🪙';
     document.getElementById('rouletteResult').style.color = '#4caf50';
   } else {
@@ -822,6 +883,43 @@ function updateLastOnlineTime() {
 setInterval(updateOfflineUI, 10000);
 setInterval(updateLastOnlineTime, 30000);
 
+// ==================== ДОСТИЖЕНИЯ ====================
+function checkAchievements() {
+  var newAchievements = [];
+  ACHIEVEMENTS.forEach(function(ach) {
+    if (!completedAchievements.includes(ach.id) && ach.check()) {
+      completedAchievements.push(ach.id);
+      newAchievements.push(ach);
+      score += ach.reward;
+      localStorage.setItem('completedAchievements', JSON.stringify(completedAchievements));
+      updateUI();
+      saveGame();
+    }
+  });
+  newAchievements.forEach(function(ach) {
+    alert('🏆 ДОСТИЖЕНИЕ ПОЛУЧЕНО!\n\n' + ach.icon + ' ' + ach.name + '\n' + ach.desc + '\n\n🎁 Награда: ' + formatNumber(ach.reward) + ' 🪙');
+  });
+  if (newAchievements.length > 0) {
+    renderAchievements();
+  }
+}
+
+function renderAchievements() {
+  var list = document.getElementById('achievementsList');
+  if (!list) return;
+  var html = '';
+  ACHIEVEMENTS.forEach(function(ach) {
+    var done = completedAchievements.includes(ach.id);
+    var cls = done ? 'achievement-item done' : 'achievement-item undone';
+    var textColor = done ? '#4caf50' : '#888';
+    html += '<div class="' + cls + '">' +
+      '<div class="left"><span class="icon">' + ach.icon + '</span><div><div class="name" style="color:' + (done ? '#4caf50' : '#fff') + ';">' + ach.name + '</div><div class="desc">' + ach.desc + '</div></div></div>' +
+      '<div class="right">' + (done ? '<span class="done-text">✅ +' + formatNumber(ach.reward) + '</span>' : '<span class="reward-text">🏅 +' + formatNumber(ach.reward) + '</span>') + '</div>' +
+      '</div>';
+  });
+  list.innerHTML = html;
+}
+
 // ==================== СОХРАНЕНИЕ ====================
 function saveGame() {
   var data = {
@@ -837,7 +935,10 @@ function saveGame() {
     autoLevel: autoLevel,
     invested: invested,
     lastOnlineTime: lastOnlineTime,
-    offlineEarnings: offlineEarnings
+    offlineEarnings: offlineEarnings,
+    tapCount: tapCount,
+    rouletteWins: rouletteWins,
+    completedAchievements: completedAchievements
   };
   localStorage.setItem('tapGameData', JSON.stringify(data));
 }
@@ -859,6 +960,9 @@ function loadGame() {
       if (data.invested) invested = data.invested;
       if (data.lastOnlineTime) lastOnlineTime = data.lastOnlineTime;
       if (data.offlineEarnings) offlineEarnings = data.offlineEarnings;
+      if (data.tapCount) tapCount = data.tapCount;
+      if (data.rouletteWins) rouletteWins = data.rouletteWins;
+      if (data.completedAchievements) completedAchievements = data.completedAchievements;
     }
   } catch(e) {}
   updateUI();
@@ -869,6 +973,7 @@ function loadGame() {
   updateAutoUI();
   updateInvestUI();
   updateOfflineUI();
+  renderAchievements();
   loadBackground();
 }
 
@@ -879,6 +984,7 @@ function updateUI() {
   tapPowerEl.textContent = tapPower;
   levelEl.textContent = level;
   upgradeBtn.textContent = '🔧 Улучшить тап (стоит ' + (level * 50) + ')';
+  checkAchievements();
 }
 
 // ==================== ТАП ====================
@@ -891,6 +997,8 @@ function handleTap(e) {
   }
   energy -= 1;
   score += tapPower;
+  tapCount += 1;
+  localStorage.setItem('tapCount', tapCount);
   updateUI();
 }
 
