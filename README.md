@@ -873,6 +873,7 @@ updateInvestUI();
     setTimeout(function() { bonusBtn.style.transform = 'scale(1)'; }, 150);
 
     updateUI();
+    updateOfflineUI();
     updateBonusUI();
     saveGame();
   }
@@ -944,6 +945,7 @@ offlineEarnings: offlineEarnings
   function loadGame() {
     if (data.lastOnlineTime) lastOnlineTime = data.lastOnlineTime;
 if (data.offlineEarnings) offlineEarnings = data.offlineEarnings;
+    updateOfflineUI();
     try {
       
       var saved = localStorage.getItem('tapGameData');
