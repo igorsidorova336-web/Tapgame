@@ -83,6 +83,7 @@
     button:active { transform: scale(0.95); }
     button:disabled { opacity: 0.4; transform: none; }
     .info { font-size: 11px; opacity: 0.3; margin-top: 15px; }
+
     .skin-item {
       width: 56px;
       height: 66px;
@@ -108,6 +109,7 @@
     .skin-item.vip { border-color: #ff6b6b; background: #1a0a0a; }
     .skin-item.legendary { border-color: #ffd700; background: #1a1500; box-shadow: 0 0 20px rgba(255,215,0,0.15); }
     .skin-item.legendary .skin-price { color: #ffd700; font-weight: bold; }
+
     .leaderboard-entry {
       display: flex;
       justify-content: space-between;
@@ -225,7 +227,8 @@
       <div>📈 Уровень: <span id="level">1</span></div>
     </div>
     <button id="upgradeBtn">🔧 Улучшить тап (стоит 50)</button>
-   <!-- АВТОКЛИКЕР -->
+
+    <!-- АВТОКЛИКЕР -->
     <div style="margin:15px 0;background:#12121f;border-radius:16px;padding:12px;">
       <div class="row">
         <div>
@@ -235,15 +238,18 @@
         <button id="autoBtn" class="btn-small" style="background:#4fc3f7;color:#000;">Купить (<span id="autoPrice">1000</span>🪙)</button>
       </div>
     </div>
+
     <!-- ЕЖЕДНЕВНЫЙ БОНУС -->
     <div style="margin:15px 0;background:#12121f;border-radius:16px;padding:12px;">
       <div style="font-size:14px;font-weight:bold;margin-bottom:8px;">🎁 Ежедневный бонус</div>
       <button id="bonusBtn" style="background:linear-gradient(135deg, #f7971e, #ffd200);padding:12px 16px;border-radius:50px;border:none;font-weight:700;font-size:15px;width:100%;color:#0f0f1a;margin-top:0;">🎁 Забрать бонус</button>
       <div style="font-size:12px;opacity:0.5;margin-top:5px;">Следующий бонус через: <span id="bonusTimer">--:--:--</span></div>
     </div>
+
     <!-- ЭКОНОМИКА -->
     <div style="margin:15px 0;background:#12121f;border-radius:16px;padding:12px;">
       <div style="font-size:14px;font-weight:bold;margin-bottom:8px;">💰 Экономика</div>
+
       <div class="economy-box">
         <div class="row">
           <div><div class="title">📈 Инвестиции</div><div class="sub">Доход: <span id="investIncome">0</span> 🪙/мин</div></div>
@@ -251,6 +257,7 @@
         </div>
         <div class="mini">Вложено: <span id="investAmount">0</span> 🪙</div>
       </div>
+
       <div class="economy-box">
         <div class="row">
           <div><div class="title">🎰 Рулетка</div><div class="sub">Шанс x2 или проигрыш</div></div>
@@ -258,6 +265,7 @@
         </div>
         <div class="mini" id="rouletteResult">Нажми "Крутить"</div>
       </div>
+
       <div class="economy-box">
         <div class="row">
           <div><div class="title">🏷️ Аукцион скинов</div><div class="sub">Торгуй скинами</div></div>
@@ -265,6 +273,7 @@
         </div>
         <div class="mini" id="auctionStatus">Сейчас торгуется: нет</div>
       </div>
+
       <div class="economy-box" style="margin-bottom:0;">
         <div class="row">
           <div><div class="title">💤 Офлайн-доход</div><div class="sub">Заработано: <span id="offlineEarned">0</span> 🪙</div></div>
@@ -273,12 +282,14 @@
         <div class="mini">Ты отсутствовал: <span id="offlineTime">0</span> мин</div>
       </div>
     </div>
+
     <!-- ДОСТИЖЕНИЯ -->
     <div style="margin:15px 0;background:#12121f;border-radius:16px;padding:12px;">
       <div style="font-size:14px;font-weight:bold;margin-bottom:8px;">🏆 Достижения</div>
       <div id="achievementsList" style="text-align:left;max-height:200px;overflow-y:auto;"></div>
       <div style="font-size:11px;opacity:0.4;margin-top:5px;">Выполняй задания и получай награды!</div>
     </div>
+
     <!-- ФОН -->
     <div style="margin:15px 0;background:#12121f;border-radius:16px;padding:12px;">
       <div style="font-size:14px;font-weight:bold;margin-bottom:8px;">🎨 Фон</div>
@@ -297,6 +308,7 @@
       </div>
       <input type="file" id="bgFileInput" accept="image/*" style="display:none;">
     </div>
+
     <!-- ТАБЛИЦА ЛИДЕРОВ -->
     <div style="margin:15px 0;background:#12121f;border-radius:16px;padding:12px;">
       <div style="font-size:14px;font-weight:bold;margin-bottom:10px;">🏆 Таблица лидеров</div>
@@ -306,6 +318,7 @@
       </div>
       <div id="leaderboardList" style="text-align:left;"></div>
     </div>
+
     <div class="info">⬆️ Автосохранение каждые 5 секунд</div>
   </div>
 
@@ -464,4 +477,4 @@ const ACHIEVEMENTS = [
   { id: 'rich_10k', name: 'Богач', desc: 'Накопи 10 000 монет', icon: '💰', reward: 2000, check: () => score >= 10000 },
   { id: 'rich_100k', name: 'Магнат', desc: 'Накопи 100 000 монет', icon: '💎', reward: 10000, check: () => score >= 100000 },
   { id: 'rich_1m', name: 'Миллионер', desc: 'Накопи 1 000 000 монет', icon: '🏦', reward: 50000, check: () => score >= 1000000 },
-  { id: 'rich_10m', name: 'Легенда богатства', desc: 'Накопи 10 000 000 монет', icon: 
+  { id: 'rich_10m', name: 'Легенда богатства',
