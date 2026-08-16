@@ -87,9 +87,27 @@
 
 <script>
   // ========== ИГРА ==========
-  let score = 0;
-  let energy = 100;
-  let tapPower = 1;
+  // Загружаем сохранённые данные
+let savedData = localStorage.getItem('tapGameData');
+if (savedData) {
+  try {
+    savedData = JSON.parse(savedData);
+    score = savedData.score || 0;
+    energy = savedData.energy || 100;
+    tapPower = savedData.tapPower || 1;
+    level = savedData.level || 1;
+  } catch(e) {
+    score = 0;
+    energy = 100;
+    tapPower = 1;
+    level = 1;
+  }
+} else {
+  score = 0;
+  energy = 100;
+  tapPower = 1;
+  level = 1;
+}
   let level = 1;
   const MAX_ENERGY = 100;
 
@@ -154,6 +172,29 @@
 
   // Запуск
   updateUI();
+  // ========== СОХРАНЕНИЕ ==========
+function saveGame() {
+  const data = {
+    score: score,
+    energy: energy,
+    tapPower: tapPower,
+    level: level
+  };
+  localStorage.setItem('tapGameData', JSON.stringify(data));
+}
+
+// Сохраняем при каждом изменении
+function updateUI() {
+  scoreEl.textContent = Math.floor(score);
+  energyEl.textContent = Math.floor(energy);
+  tapPowerEl.textContent = tapPower;
+  levelEl.textContent = level;
+  upgradeBtn.textContent = '🔧 Улучшить (стоит ' + (level * 50) + ')';
+  saveGame(); // 👈 добавляем автосохранение
+}
+
+// Сохраняем при закрытии
+window.addEventListener('beforeunload', saveGame);
 </script>
 </body>
 </html>
