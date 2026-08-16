@@ -392,10 +392,11 @@ async function fetchOnline() {
         if (data.online !== undefined) {
             document.getElementById('onlineCount').textContent = data.online;
         }
-    } catch(e) {}
+    } catch(e) {
+        console.log('⚠️ Сервер не отвечает');
+    }
 }
 
-// Запуск онлайна
 joinOnline();
 setInterval(pingOnline, 5000);
 setInterval(fetchOnline, 10000);
