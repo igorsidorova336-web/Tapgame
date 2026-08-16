@@ -333,6 +333,75 @@ function switchToSkins() {
   document.getElementById('tabGame').className = 'tab-btn inactive';
 }
 
+// ==================== РЕАЛЬНЫЙ ОНЛАЙН (СЕРВЕР RENDER) ====================
+const SERVER_URL = 'https://tapgame-1.onrender.com';
+
+let playerOnlineId = localStorage.getItem('playerOnlineId');
+if (!playerOnlineId) {
+    playerOnlineId = Date.now().toString() + '_' + Math.random().toString(36).substr(2, 5);
+    localStorage.setItem('playerOnlineId', playerOnlineId);
+}
+
+async function joinOnline() {
+    try {
+        const response = await fetch(SERVER_URL + '/api/online/join', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ player_id: playerOnlineId })
+        });
+        const data = await response.json();
+        if (data.online !== undefined) {
+            document.getElementById('onlineCount').textContent = data.online;
+        }
+    } catch(e) {
+        console.log('⚠️ Сервер не отвечает');
+        document.getElementById('onlineCount').textContent = Math.floor(Math.random() * 12) + 3;
+    }
+}
+
+async function pingOnline() {
+    try {
+        const response = await fetch(SERVER_URL + '/api/online/ping', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ player_id: playerOnlineId })
+        });
+        const data = await response.json();
+        if (data.online !== undefined) {
+            document.getElementById('onlineCount').textContent = data.online;
+        }
+    } catch(e) {
+        console.log('⚠️ Сервер не отвечает');
+    }
+}
+
+async function leaveOnline() {
+    try {
+        await fetch(SERVER_URL + '/api/online/leave', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ player_id: playerOnlineId })
+        });
+    } catch(e) {}
+}
+
+async function fetchOnline() {
+    try {
+        const response = await fetch(SERVER_URL + '/api/online');
+        const data = await response.json();
+        if (data.online !== undefined) {
+            document.getElementById('onlineCount').textContent = data.online;
+        }
+    } catch(e) {}
+}
+
+// Запуск онлайна
+joinOnline();
+setInterval(pingOnline, 5000);
+setInterval(fetchOnline, 10000);
+window.addEventListener('beforeunload', leaveOnline);
+window.addEventListener('pagehide', leaveOnline);
+
 // ==================== ПЕРЕМЕННЫЕ ====================
 let score = 0;
 let energy = 100;
@@ -537,13 +606,6 @@ function init3DCoin() {
     renderer.setSize(size, size);
   });
 }
-
-// ==================== ОНЛАЙН ====================
-function updateOnline() {
-  document.getElementById('onlineCount').textContent = Math.floor(Math.random() * 12) + 3;
-}
-updateOnline();
-setInterval(updateOnline, 15000);
 
 // ==================== СКИНЫ ====================
 function updateCoinSkin() {
