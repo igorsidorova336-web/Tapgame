@@ -334,7 +334,7 @@ function switchToSkins() {
 }
 
 // ==================== РЕАЛЬНЫЙ ОНЛАЙН (СЕРВЕР RENDER) ====================
-const SERVER_URL = 'https://tapgame.onrender.com';
+const SERVER_URL = 'https://tapgame-1-icta.onrender.com';
 
 let playerOnlineId = localStorage.getItem('playerOnlineId');
 if (!playerOnlineId) {
